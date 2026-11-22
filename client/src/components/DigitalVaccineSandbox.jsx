@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { 
   Award, 
-  AlertTriangle, 
   ShieldCheck, 
   Volume2, 
   CheckCircle2, 
   XCircle, 
   Sparkles,
-  RotateCcw,
   Smartphone
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -21,7 +19,6 @@ export default function DigitalVaccineSandbox({ language, onEarnBadge }) {
   const [completedSims, setCompletedSims] = useState({});
 
   const simulation = SCAM_SIMULATIONS[activeSimIndex];
-  const choiceResult = simulation.choices.find(c => c.id === selectedChoiceId);
 
   const handleSelectChoice = (choice) => {
     setSelectedChoiceId(choice.id);
@@ -29,7 +26,7 @@ export default function DigitalVaccineSandbox({ language, onEarnBadge }) {
 
     if (choice.isCorrect) {
       confetti({
-        particleCount: 70,
+        particleCount: 60,
         spread: 60,
         origin: { y: 0.7 }
       });
@@ -53,35 +50,32 @@ export default function DigitalVaccineSandbox({ language, onEarnBadge }) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 animate-fade-in">
+    <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
       {/* Header */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border-2 border-slate-200 dark:border-slate-800 shadow-md mb-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+      <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 sm:p-10 border border-zinc-200 dark:border-zinc-800 shadow-xs mb-8">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div className="flex items-center space-x-3">
-            <div className="p-3 bg-purple-100 dark:bg-purple-950/80 text-purple-600 rounded-2xl">
-              <Award className="w-8 h-8" />
+            <div className="w-10 h-10 bg-black text-white dark:bg-white dark:text-black rounded-xl flex items-center justify-center">
+              <Award className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-                  Digital Vaccine Sandbox
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                  Safety Training Sandbox
                 </h2>
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-800 dark:bg-purple-950/80 dark:text-purple-300">
+                <span className="px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
                   Risk-Free Training
                 </span>
               </div>
-              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
-                Practice handling hyper-realistic fake messages in a 100% safe sandbox to build natural reflex.
+              <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-normal">
+                Hands-on simulation of prevalent digital threats to build natural recognition reflex.
               </p>
             </div>
           </div>
 
-          {/* Badges Earned Counter */}
-          <div className="flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-2xl">
-            <Sparkles className="w-5 h-5 text-amber-500" />
-            <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
-              {Object.keys(completedSims).length} / {SCAM_SIMULATIONS.length} Vaccines Earned
-            </span>
+          <div className="flex items-center space-x-1.5 bg-zinc-100 dark:bg-zinc-800 px-3.5 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>{Object.keys(completedSims).length} / {SCAM_SIMULATIONS.length} Completed</span>
           </div>
         </div>
 
@@ -98,63 +92,63 @@ export default function DigitalVaccineSandbox({ language, onEarnBadge }) {
                   setSelectedChoiceId(null);
                   setFeedbackState(null);
                 }}
-                className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all border ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
                   isCurrent
-                    ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
+                    ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white shadow-xs'
                     : isCompleted
-                    ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-300'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                    ? 'bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-zinc-300 dark:border-zinc-700'
+                    : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400'
                 }`}
               >
-                {isCompleted ? '✓ ' : ''}Simulation {index + 1}
+                {isCompleted ? '✓ ' : ''}Scenario {index + 1}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Simulated Phone SMS / Message Screen */}
-      <div className="bg-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl border-4 border-slate-700 mb-6">
-        <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
+      {/* Simulated Screen */}
+      <div className="bg-zinc-950 rounded-3xl p-6 sm:p-10 text-white shadow-xl border border-zinc-800 mb-8">
+        <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-6">
           <div className="flex items-center space-x-2">
-            <Smartphone className="w-4 h-4 text-purple-400" />
-            <span>Simulated Incoming Threat Screen</span>
+            <Smartphone className="w-4 h-4 text-zinc-400" />
+            <span>Simulated Incoming Threat</span>
           </div>
-          <span className="text-red-400 font-extrabold uppercase">
-            Threat Type: {simulation.threatType}
+          <span className="text-zinc-300 font-bold">
+            Vector: {simulation.threatType}
           </span>
         </div>
 
         {/* Message Bubble Card */}
-        <div className="max-w-xl mx-auto bg-slate-950 rounded-2xl p-5 border border-slate-800 shadow-inner">
-          <div className="flex justify-between items-center text-xs text-slate-500 pb-2 border-b border-slate-800 mb-3">
-            <span className="font-bold text-amber-400">{simulation.sender}</span>
+        <div className="max-w-xl mx-auto bg-black rounded-2xl p-6 border border-zinc-800 shadow-inner">
+          <div className="flex justify-between items-center text-[11px] text-zinc-500 pb-2 border-b border-zinc-900 mb-4">
+            <span className="font-semibold text-zinc-300">{simulation.sender}</span>
             <span>Just Now</span>
           </div>
 
-          <p className="text-base sm:text-xl font-medium text-slate-100 leading-relaxed">
+          <p className="text-base sm:text-lg font-normal text-zinc-200 leading-relaxed">
             {simulation.messageBody[language] || simulation.messageBody.en}
           </p>
         </div>
 
-        {/* Red Flags Accordion / List */}
-        <div className="mt-6 max-w-xl mx-auto bg-slate-800/80 rounded-2xl p-4 border border-slate-700">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-black uppercase tracking-wider text-amber-400">
-              Hidden Red Flags to Spot:
+        {/* Red Flags List */}
+        <div className="mt-8 max-w-xl mx-auto bg-zinc-900 rounded-2xl p-5 border border-zinc-800">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+              Red Flags to Spot:
             </span>
             <button
               onClick={speakAudioExplanation}
-              className="text-xs font-bold text-slate-300 hover:text-white flex items-center space-x-1"
+              className="text-xs font-semibold text-zinc-300 hover:text-white flex items-center space-x-1"
             >
-              <Volume2 className="w-3.5 h-3.5 text-amber-400" />
-              <span>Hear Explanation</span>
+              <Volume2 className="w-3.5 h-3.5" />
+              <span>Listen</span>
             </button>
           </div>
-          <ul className="space-y-1.5 text-xs sm:text-sm text-slate-300">
+          <ul className="space-y-2 text-xs sm:text-sm text-zinc-300 font-normal">
             {simulation.redFlags.map((flagObj, i) => (
               <li key={i} className="flex items-start space-x-2">
-                <span className="text-amber-400 font-bold">•</span>
+                <span className="text-zinc-500 font-bold">•</span>
                 <span>{flagObj[language] || flagObj.flag}</span>
               </li>
             ))}
@@ -162,10 +156,10 @@ export default function DigitalVaccineSandbox({ language, onEarnBadge }) {
         </div>
       </div>
 
-      {/* Interactive Choices */}
-      <div className="space-y-3 mb-6">
-        <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white text-center">
-          What would you do in this situation?
+      {/* Interactive Choices in Classy Monochrome */}
+      <div className="space-y-3 mb-8">
+        <h3 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-white text-center">
+          What is the safe response?
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -175,17 +169,17 @@ export default function DigitalVaccineSandbox({ language, onEarnBadge }) {
               <button
                 key={choice.id}
                 onClick={() => handleSelectChoice(choice)}
-                className={`min-h-[70px] p-5 rounded-2xl font-black text-base sm:text-lg text-left transition-all border-2 shadow-sm flex items-center justify-between ${
+                className={`min-h-[64px] p-4 rounded-2xl font-semibold text-sm sm:text-base text-left transition-all border flex items-center justify-between ${
                   isSelected
                     ? choice.isCorrect
-                      ? 'bg-emerald-500 text-white border-emerald-600 scale-102'
-                      : 'bg-red-500 text-white border-red-600 scale-102'
-                    : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-slate-200 dark:border-slate-800 hover:border-amber-400'
+                      ? 'bg-zinc-900 text-white border-black dark:bg-white dark:text-black shadow-xs'
+                      : 'bg-zinc-800 text-white border-zinc-700 shadow-xs'
+                    : 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white border-zinc-200 dark:border-zinc-800 hover:border-black dark:hover:border-white'
                 }`}
               >
                 <span>{choice.text[language] || choice.text.en}</span>
                 {isSelected && (
-                  choice.isCorrect ? <CheckCircle2 className="w-6 h-6 flex-shrink-0 ml-2" /> : <XCircle className="w-6 h-6 flex-shrink-0 ml-2" />
+                  choice.isCorrect ? <CheckCircle2 className="w-5 h-5 flex-shrink-0 ml-2" /> : <XCircle className="w-5 h-5 flex-shrink-0 ml-2" />
                 )}
               </button>
             );
@@ -195,31 +189,23 @@ export default function DigitalVaccineSandbox({ language, onEarnBadge }) {
 
       {/* Feedback Banner */}
       {feedbackState && (
-        <div className={`p-6 rounded-3xl border-4 shadow-lg mb-6 animate-fade-in ${
-          feedbackState.isCorrect
-            ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-950 dark:text-emerald-100'
-            : 'bg-red-50 dark:bg-red-950/40 border-red-500 text-red-950 dark:text-red-100'
-        }`}>
-          <div className="flex items-center space-x-3 mb-2">
-            {feedbackState.isCorrect ? (
-              <ShieldCheck className="w-8 h-8 text-emerald-600" />
-            ) : (
-              <AlertTriangle className="w-8 h-8 text-red-600" />
-            )}
-            <h4 className="text-xl sm:text-2xl font-black">
-              {feedbackState.isCorrect ? "Vaccine Succeeded! You Defended Yourself" : "Learning Moment: Why This Was Risky"}
+        <div className="p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 shadow-xs mb-8 animate-fade-in">
+          <div className="flex items-center space-x-2 mb-2">
+            <ShieldCheck className="w-5 h-5 text-zinc-900 dark:text-white" />
+            <h4 className="text-lg font-bold">
+              {feedbackState.isCorrect ? "Correct Decision" : "Risk Analysis"}
             </h4>
           </div>
 
-          <p className="text-base sm:text-lg font-semibold mb-4">
+          <p className="text-sm sm:text-base font-normal text-zinc-600 dark:text-zinc-300 mb-4 leading-relaxed">
             {feedbackState.feedback[language] || feedbackState.feedback.en}
           </p>
 
           <button
             onClick={handleNextSimulation}
-            className="px-6 py-3 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:bg-slate-800 transition-all text-sm"
+            className="px-5 py-2.5 rounded-xl bg-black text-white dark:bg-white dark:text-black font-semibold text-xs hover:opacity-90 transition-all"
           >
-            Try Next Digital Vaccine Practice →
+            Next Scenario →
           </button>
         </div>
       )}

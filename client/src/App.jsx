@@ -7,10 +7,8 @@ import {
   ShieldCheck, 
   Users, 
   Mic, 
-  AlertOctagon, 
   Sparkles,
-  ChevronRight,
-  Filter,
+  ArrowUpRight,
   CheckCircle2
 } from 'lucide-react';
 import Navbar from './components/Navbar';
@@ -23,13 +21,12 @@ import PrePostTest from './components/PrePostTest';
 import CaregiverDashboard from './components/CaregiverDashboard';
 import { TASK_GUIDES } from './data/guides';
 import { guardianService } from './services/guardianService';
-import { speechService } from './services/speechService';
 import { APP_CONFIG } from './config/appConfig';
 
 export default function App() {
   const [language, setLanguage] = useState('en'); // 'en' | 'kn' | 'hi'
-  const [fontScale, setFontScale] = useState('large'); // 'normal' | 'large' | 'jumbo'
-  const [theme, setTheme] = useState('normal'); // 'normal' | 'high-contrast-yellow'
+  const [zoomLevel, setZoomLevel] = useState(115); // 100, 115, 130, 150, 175, 200
+  const [theme, setTheme] = useState('light'); // 'light' | 'dark'
   const [activeTab, setActiveTab] = useState('guides');
   const [activeGuide, setActiveGuide] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -37,7 +34,7 @@ export default function App() {
 
   const prefix = APP_CONFIG.storagePrefix;
 
-  // Persistence State using configurable prefix
+  // Persistence State
   const [completedGuides, setCompletedGuides] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem(`${prefix}completed_guides`)) || [];
@@ -64,10 +61,16 @@ export default function App() {
 
   const [alertsCount, setAlertsCount] = useState(() => guardianService.getCaregiverAlerts().length);
 
-  // Sync theme & font scale to document body
+  // Sync zoom factor and theme
   useEffect(() => {
-    document.body.className = `theme-${theme} font-scale-${fontScale}`;
-  }, [theme, fontScale]);
+    document.documentElement.style.setProperty('--zoom-factor', zoomLevel / 100);
+    document.body.className = `theme-${theme}`;
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme, zoomLevel]);
 
   const handleCompleteGuide = (guideId) => {
     if (!completedGuides.includes(guideId)) {
@@ -100,13 +103,13 @@ export default function App() {
   const brandHeading = APP_CONFIG.brandName[language] || APP_CONFIG.brandName.en;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
-      {/* Accessible Navbar */}
+    <div className="min-h-screen flex flex-col bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors">
+      {/* Refined Minimalist Navbar */}
       <Navbar
         language={language}
         setLanguage={setLanguage}
-        fontScale={fontScale}
-        setFontScale={setFontScale}
+        zoomLevel={zoomLevel}
+        setZoomLevel={setZoomLevel}
         theme={theme}
         setTheme={setTheme}
         activeTab={activeTab}
@@ -130,30 +133,34 @@ export default function App() {
           <>
             {/* TAB 1: 20 DIGITAL GUIDES */}
             {activeTab === 'guides' && (
-              <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
-                {/* Hero Banner */}
-                <div className="bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-3xl p-6 sm:p-10 text-slate-950 shadow-xl mb-8 relative overflow-hidden">
-                  <div className="max-w-2xl">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-slate-950 text-amber-300 uppercase tracking-wider mb-3">
-                      {APP_CONFIG.academic.institution} • {APP_CONFIG.academic.courseCode}
-                    </span>
-                    <h2 className="text-3xl sm:text-5xl font-black tracking-tight mb-3">
+              <div className="max-w-6xl mx-auto px-4 py-8 animate-fade-in">
+                {/* Classy Editorial Hero Card */}
+                <div className="rounded-3xl p-8 sm:p-12 bg-zinc-900 text-white dark:bg-zinc-900/90 border border-zinc-800 shadow-md mb-10 relative overflow-hidden">
+                  <div className="max-w-2xl relative z-10">
+                    <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700 mb-4">
+                      <span>{APP_CONFIG.academic.institution}</span>
+                      <span>•</span>
+                      <span>{APP_CONFIG.academic.courseCode}</span>
+                    </div>
+
+                    <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4">
                       {brandHeading}
                     </h2>
-                    <p className="text-base sm:text-xl font-bold opacity-90 mb-6">
+
+                    <p className="text-base sm:text-lg text-zinc-300 font-normal leading-relaxed mb-8">
                       {language === 'kn'
-                        ? "ಭಯವಿಲ್ಲದೆ, ಸ್ವತಂತ್ರವಾಗಿ ಸ್ಮಾರ್ಟ್‌ಫೋನ್ ಬಳಸಲು 20 ಹಂತ-ಹಂತದ ಸರಳ ಮಾರ್ಗದರ್ಶಿಗಳು."
+                        ? "ಭಯವಿಲ್ಲದೆ, ಸ್ವತಂತ್ರವಾಗಿ ಸ್ಮಾರ್ಟ್‌ಫೋನ್ ಬಳಸಲು 20 ಹಂತ-ಹಂತದ ಸರಳ ಮಾರ್ಗದರ್ಶಿಗಳು ಮತ್ತು ಸೈಬರ್ ರಕ್ಷಣೆ."
                         : language === 'hi'
-                        ? "आत्मविश्वास के साथ स्मार्टफोन चलाने के लिए 20 आसान सचित्र गाइड।"
-                        : "20 step-by-step visual guides designed specifically for senior citizens with voice pacing & spotlight assistance."}
+                        ? "आत्मविश्वास के साथ स्मार्टफोन चलाने के लिए 20 आसान सचित्र गाइड एवं डिजिटल सुरक्षा।"
+                        : "Purpose-built digital autonomy and cyber fraud defense for senior citizens. Structured step-by-step guidance, calm cadence speech, and active coercion interception."}
                     </p>
 
                     <button
                       onClick={() => setIsVoiceOpen(true)}
-                      className="px-6 py-3.5 rounded-2xl bg-slate-950 text-amber-300 hover:bg-slate-900 font-black text-base flex items-center space-x-2 shadow-lg transition-transform hover:scale-102"
+                      className="px-6 py-3.5 rounded-xl bg-white text-black hover:bg-zinc-200 font-bold text-sm sm:text-base flex items-center space-x-2 shadow-xs transition-all"
                     >
-                      <Mic className="w-5 h-5 text-amber-400" />
-                      <span>{language === 'kn' ? "ಧ್ವನಿ ಮೂಲಕ ಕೇಳಿ" : language === 'hi' ? "बोलकर पूछें" : "Ask by Voice (Infinite-Pause VAD)"}</span>
+                      <Mic className="w-4 h-4 text-black" />
+                      <span>{language === 'kn' ? "ಧ್ವನಿ ಮೂಲಕ ಮಾತನಾಡಿ" : language === 'hi' ? "बोलकर पूछें" : "Voice Assistant (Infinite-Pause VAD)"}</span>
                     </button>
                   </div>
                 </div>
@@ -164,10 +171,10 @@ export default function App() {
                     <button
                       key={cat}
                       onClick={() => setSelectedCategory(cat)}
-                      className={`px-4 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all border ${
+                      className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all border ${
                         selectedCategory === cat
-                          ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm font-black'
-                          : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-amber-400'
+                          ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white shadow-xs'
+                          : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400'
                       }`}
                     >
                       {cat}
@@ -175,47 +182,47 @@ export default function App() {
                   ))}
                 </div>
 
-                {/* Guides Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Guides Grid in Minimalist Black/White Elegance */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {filteredGuides.map((guide) => {
                     const isCompleted = completedGuides.includes(guide.id);
                     return (
                       <div
                         key={guide.id}
                         onClick={() => setActiveGuide(guide)}
-                        className="bg-white dark:bg-slate-900 rounded-3xl p-6 border-2 border-slate-200 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-500 shadow-sm hover:shadow-xl transition-all cursor-pointer flex flex-col justify-between group"
+                        className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 hover:border-black dark:hover:border-white shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
                       >
                         <div>
                           <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                               {guide.category}
                             </span>
                             {isCompleted ? (
-                              <span className="inline-flex items-center text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-full">
+                              <span className="inline-flex items-center text-xs font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
                                 <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Mastered
                               </span>
                             ) : (
-                              <span className="text-xs font-bold text-slate-400">
+                              <span className="text-xs text-zinc-400 font-medium">
                                 {guide.steps.length} Steps
                               </span>
                             )}
                           </div>
 
-                          <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2 group-hover:text-amber-500 transition-colors">
+                          <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2 group-hover:underline">
                             {guide.title[language] || guide.title.en}
                           </h3>
 
-                          <p className="text-sm font-medium text-slate-600 dark:text-slate-400 line-clamp-2">
+                          <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 font-normal leading-relaxed line-clamp-2">
                             {guide.description[language] || guide.description.en}
                           </p>
                         </div>
 
-                        <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                          <span className="text-xs font-black text-slate-900 dark:text-amber-300">
-                            Start Step-by-Step
+                        <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                          <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-200">
+                            Open Step-by-Step
                           </span>
-                          <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 group-hover:bg-amber-500 group-hover:text-slate-950 transition-colors">
-                            <ChevronRight className="w-4 h-4" />
+                          <div className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-800 dark:text-zinc-200 group-hover:bg-black group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black transition-colors">
+                            <ArrowUpRight className="w-4 h-4" />
                           </div>
                         </div>
                       </div>
@@ -225,7 +232,7 @@ export default function App() {
               </div>
             )}
 
-            {/* TAB 2: IS THIS A SCAM? */}
+            {/* TAB 2: SCAM VERIFIER */}
             {activeTab === 'scam-check' && (
               <ScamDetector
                 language={language}
@@ -241,7 +248,7 @@ export default function App() {
               />
             )}
 
-            {/* TAB 3: DIGITAL VACCINE SANDBOX */}
+            {/* TAB 3: SAFETY SANDBOX */}
             {activeTab === 'vaccine' && (
               <DigitalVaccineSandbox
                 language={language}
@@ -249,12 +256,12 @@ export default function App() {
               />
             )}
 
-            {/* TAB 4: DUAL STREAM GUARDIAN (LIVE INTERCEPTOR SIMULATION) */}
+            {/* TAB 4: GUARDIAN SHIELD */}
             {activeTab === 'guardian-sim' && (
               <DualStreamGuardianModal language={language} />
             )}
 
-            {/* TAB 5: PRE/POST TEST EVALUATION */}
+            {/* TAB 5: PRE / POST TEST EVALUATION */}
             {activeTab === 'evaluation' && (
               <PrePostTest
                 language={language}
@@ -262,7 +269,7 @@ export default function App() {
               />
             )}
 
-            {/* TAB 6: CAREGIVER DASHBOARD */}
+            {/* TAB 6: CAREGIVER PORTAL */}
             {activeTab === 'caregiver' && (
               <CaregiverDashboard
                 completedGuidesCount={completedGuides.length}
@@ -275,14 +282,14 @@ export default function App() {
         )}
       </main>
 
-      {/* Floating Patient Voice Assistant Button */}
+      {/* Classy Floating Microphone Action Button */}
       <div className="fixed bottom-6 right-6 z-40">
         <button
           onClick={() => setIsVoiceOpen(true)}
-          className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center shadow-2xl hover:bg-amber-400 hover:scale-105 transition-all ring-4 ring-amber-200 dark:ring-amber-950"
-          title="Infinite-Pause Voice Companion"
+          className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black text-white dark:bg-white dark:text-black flex items-center justify-center shadow-xl hover:scale-105 transition-all border border-zinc-700"
+          title="Voice Assistant (Infinite-Pause VAD)"
         >
-          <Mic className="w-8 h-8 sm:w-10 sm:h-10" />
+          <Mic className="w-6 h-6 sm:w-7 sm:h-7" />
         </button>
       </div>
 

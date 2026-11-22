@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
   ArrowRight, 
-  RotateCcw, 
   Volume2, 
   CheckCircle2, 
   Sparkles,
@@ -26,7 +25,6 @@ export default function SpotlightGuide({
   const isLastStep = currentStepIndex === steps.length - 1;
 
   useEffect(() => {
-    // Speak the step aloud automatically on step change
     speakCurrentStep();
   }, [currentStepIndex, language]);
 
@@ -71,82 +69,82 @@ export default function SpotlightGuide({
       stepOf: `Step ${currentStepIndex + 1} of ${steps.length}`,
       prev: "Previous Step",
       next: "Next Step",
-      finish: "Task Complete! 🎉",
+      finish: "Task Complete! ✓",
       repeat: "Repeat Spoken Instruction",
-      spotlightNotice: "Spotlight Active: Tap only the glowing highlighted area below."
+      spotlightNotice: "Spotlight Active: Tap the highlighted target below."
     },
     kn: {
       stepOf: `ಹಂತ ${currentStepIndex + 1} / ${steps.length}`,
       prev: "ಹಿಂದಿನ ಹಂತ",
       next: "ಮುಂದಿನ ಹಂತ",
-      finish: "ಕೆಲಸ ಮುಗಿಯಿತು! 🎉",
+      finish: "ಕೆಲಸ ಮುಗಿಯಿತು! ✓",
       repeat: "ಸೂಚನೆಯನ್ನು ಮತ್ತೆ ಕೇಳಿ",
-      spotlightNotice: "ಸ್ಪಾಟ್‌ಲೈಟ್ ಆನ್ ಆಗಿದೆ: ಕೆಳಗೆ ಹಳದಿ ಬಣ್ಣದಲ್ಲಿ ಹೊಳೆಯುತ್ತಿರುವ ಜಾಗವನ್ನು ಮಾತ್ರ ಒತ್ತಿರಿ."
+      spotlightNotice: "ಸ್ಪಾಟ್‌ಲೈಟ್ ಆನ್ ಆಗಿದೆ: ಕೆಳಗೆ ಹೈಲೈಟ್ ಆಗಿರುವ ಜಾಗವನ್ನು ಒತ್ತಿರಿ."
     },
     hi: {
       stepOf: `चरण ${currentStepIndex + 1} / ${steps.length}`,
       prev: "पिछला चरण",
       next: "अगला चरण",
-      finish: "कार्य पूरा हुआ! 🎉",
+      finish: "कार्य पूरा हुआ! ✓",
       repeat: "आवाज दोबारा सुनें",
-      spotlightNotice: "स्पॉटलाइट चालू: नीचे पीले रंग में चमक रहे स्थान पर ही टैप करें।"
+      spotlightNotice: "स्पॉटलाइट चालू: नीचे रेखांकित स्थान पर टैप करें।"
     }
   };
 
   const labels = localizedLabels[language] || localizedLabels.en;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 animate-fade-in">
-      {/* Top Navigation */}
+    <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
+      {/* Back Button */}
       <button
         onClick={() => {
           speechService.stopSpeaking();
           onBack();
         }}
-        className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 font-bold mb-4"
+        className="flex items-center space-x-2 text-zinc-500 hover:text-black dark:text-zinc-400 dark:hover:text-white font-semibold text-sm mb-6 transition-colors"
       >
-        <ArrowLeft className="w-5 h-5" />
-        <span>Back to All Guides</span>
+        <ArrowLeft className="w-4 h-4" />
+        <span>Back to Guides</span>
       </button>
 
-      {/* Guide Header Card */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border-2 border-slate-200 dark:border-slate-800 shadow-md mb-6">
+      {/* Guide Header Card in Refined Monochrome */}
+      <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 sm:p-10 border border-zinc-200 dark:border-zinc-800 shadow-xs mb-8">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-          <span className="px-4 py-1.5 rounded-full bg-amber-100 text-amber-900 dark:bg-amber-950/80 dark:text-amber-300 text-sm font-extrabold uppercase tracking-wide">
+          <span className="px-3 py-1 rounded-full bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 text-xs font-bold uppercase tracking-wider border border-zinc-200 dark:border-zinc-700">
             {labels.stepOf}
           </span>
 
           <button
             onClick={speakCurrentStep}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-2xl text-sm font-bold transition-all shadow-sm ${
+            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
               isPlayingAudio
-                ? 'bg-amber-400 text-slate-950 scale-102 ring-4 ring-amber-200'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200'
+                ? 'bg-black text-white dark:bg-white dark:text-black border-transparent'
+                : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100'
             }`}
           >
-            <Volume2 className="w-4 h-4 text-amber-600" />
+            <Volume2 className="w-3.5 h-3.5" />
             <span>{labels.repeat}</span>
           </button>
         </div>
 
-        <h2 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white mb-2">
+        <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mb-3">
           {guide.title[language] || guide.title.en}
         </h2>
-        <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 font-medium">
+        <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 font-normal leading-relaxed">
           {guide.description[language] || guide.description.en}
         </p>
 
         {/* Current Instruction Box */}
-        <div className="mt-6 p-6 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700">
-          <p className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-amber-100 leading-snug">
+        <div className="mt-8 p-6 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700">
+          <p className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-white leading-snug">
             {currentStep.instruction[language] || currentStep.instruction.en}
           </p>
 
           {currentStep.tip && (
-            <div className="mt-4 flex items-start space-x-2 text-sm sm:text-base text-amber-900 dark:text-amber-200 font-medium">
-              <Info className="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-600" />
+            <div className="mt-4 flex items-start space-x-2 text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 font-medium">
+              <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-zinc-400" />
               <span>
-                <strong>Tip:</strong> {currentStep.tip[language] || currentStep.tip.en}
+                <strong>Note:</strong> {currentStep.tip[language] || currentStep.tip.en}
               </span>
             </div>
           )}
@@ -154,51 +152,50 @@ export default function SpotlightGuide({
       </div>
 
       {/* Simulated Screen with "Spotlight Scaffolding" */}
-      <div className="bg-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-2xl border-4 border-slate-700 mb-6">
-        <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
+      <div className="bg-zinc-950 rounded-3xl p-6 sm:p-10 text-white shadow-xl border border-zinc-800 mb-8">
+        <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-6">
           <div className="flex items-center space-x-2">
-            <Smartphone className="w-4 h-4 text-amber-400" />
-            <span>Interactive Phone Screen Mockup</span>
+            <Smartphone className="w-4 h-4 text-zinc-400" />
+            <span>Simulated Device View</span>
           </div>
-          <span className="text-amber-400 flex items-center">
+          <span className="text-zinc-300 flex items-center">
             <Sparkles className="w-3.5 h-3.5 mr-1" />
             {labels.spotlightNotice}
           </span>
         </div>
 
         {/* Mock Phone Frame */}
-        <div className="relative mx-auto max-w-sm h-80 bg-slate-950 rounded-2xl border-2 border-slate-800 p-4 flex flex-col justify-between overflow-hidden shadow-inner">
+        <div className="relative mx-auto max-w-sm h-84 bg-black rounded-3xl border border-zinc-800 p-5 flex flex-col justify-between overflow-hidden shadow-2xl">
           {/* Top Status Bar */}
-          <div className="flex justify-between items-center text-xs text-slate-500 pb-2 border-b border-slate-900">
+          <div className="flex justify-between items-center text-[11px] text-zinc-600 pb-2 border-b border-zinc-900">
             <span>9:41 AM</span>
             <span>LTE 100%</span>
           </div>
 
           {/* Screen Content with Dimming and Spotlight */}
           <div className="flex-1 flex flex-col items-center justify-center relative">
-            {/* Background elements are dimmed */}
-            <div className="absolute inset-0 opacity-20 pointer-events-none flex flex-col justify-around py-4">
-              <div className="h-6 w-3/4 bg-slate-700 rounded"></div>
-              <div className="h-20 w-full bg-slate-800 rounded"></div>
-              <div className="h-8 w-1/2 bg-slate-700 rounded"></div>
+            <div className="absolute inset-0 opacity-15 pointer-events-none flex flex-col justify-around py-4">
+              <div className="h-5 w-3/4 bg-zinc-700 rounded"></div>
+              <div className="h-16 w-full bg-zinc-800 rounded"></div>
+              <div className="h-6 w-1/2 bg-zinc-700 rounded"></div>
             </div>
 
-            {/* Glowing Spotlight Target */}
-            <div className="spotlight-active p-4 rounded-2xl bg-amber-500 text-slate-950 font-black text-center shadow-2xl flex flex-col items-center space-y-1 z-10 cursor-pointer"
-                 onClick={handleNext}
+            {/* High-End White Spotlight Target */}
+            <div 
+              className="spotlight-active p-5 rounded-2xl bg-white text-black font-bold text-center shadow-2xl flex flex-col items-center space-y-1.5 z-10 cursor-pointer transition-transform hover:scale-102"
+              onClick={handleNext}
             >
-              <Sparkles className="w-6 h-6 animate-spin text-slate-950" />
-              <span className="text-lg tracking-tight">
+              <span className="text-base sm:text-lg tracking-tight">
                 {currentStep.spotlightTarget}
               </span>
-              <span className="text-xs uppercase font-extrabold bg-slate-950 text-amber-400 px-2 py-0.5 rounded">
-                Tap Here To Continue
+              <span className="text-[10px] uppercase font-bold bg-black text-white px-2 py-0.5 rounded-md">
+                Tap to Proceed
               </span>
             </div>
           </div>
 
           {/* Bottom Bar */}
-          <div className="text-center text-xs text-slate-600 pt-2 border-t border-slate-900">
+          <div className="text-center text-[11px] text-zinc-600 pt-2 border-t border-zinc-900">
             Step {currentStepIndex + 1} of {steps.length}
           </div>
         </div>
@@ -209,26 +206,26 @@ export default function SpotlightGuide({
         <button
           onClick={handlePrev}
           disabled={currentStepIndex === 0}
-          className={`w-full sm:w-auto min-h-[60px] px-6 py-4 rounded-2xl font-black text-lg flex items-center justify-center space-x-2 transition-all ${
+          className={`w-full sm:w-auto min-h-[58px] px-6 py-3.5 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center space-x-2 border transition-all ${
             currentStepIndex === 0
-              ? 'opacity-30 cursor-not-allowed bg-slate-200 dark:bg-slate-800 text-slate-400'
-              : 'bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-slate-300'
+              ? 'opacity-30 cursor-not-allowed bg-zinc-100 dark:bg-zinc-900 text-zinc-400 border-zinc-200 dark:border-zinc-800'
+              : 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100'
           }`}
         >
-          <ArrowLeft className="w-6 h-6" />
+          <ArrowLeft className="w-5 h-5" />
           <span>{labels.prev}</span>
         </button>
 
         <button
           onClick={handleNext}
-          className={`w-full sm:w-auto min-h-[60px] px-8 py-4 rounded-2xl font-black text-xl flex items-center justify-center space-x-3 transition-all shadow-lg ${
+          className={`w-full sm:w-auto min-h-[58px] px-8 py-3.5 rounded-2xl font-bold text-base sm:text-lg flex items-center justify-center space-x-2 transition-all shadow-sm ${
             isLastStep
-              ? 'bg-emerald-500 text-white hover:bg-emerald-600 scale-102'
-              : 'bg-amber-500 text-slate-950 hover:bg-amber-400 hover:scale-102'
+              ? 'bg-black text-white dark:bg-white dark:text-black hover:opacity-90'
+              : 'bg-black text-white dark:bg-white dark:text-black hover:opacity-90'
           }`}
         >
           <span>{isLastStep ? labels.finish : labels.next}</span>
-          {isLastStep ? <CheckCircle2 className="w-6 h-6" /> : <ArrowRight className="w-6 h-6" />}
+          {isLastStep ? <CheckCircle2 className="w-5 h-5" /> : <ArrowRight className="w-5 h-5" />}
         </button>
       </div>
     </div>

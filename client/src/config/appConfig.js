@@ -3,15 +3,14 @@
  * Change the name, branding, or institution details here in ONE place.
  */
 
-// Reads from optional environment variable or falls back to standard academic title
 const customName = import.meta.env.VITE_APP_NAME || "ElderAssist AI";
 
 export const APP_CONFIG = {
   // Primary App Name (English)
   name: customName,
 
-  // Short initials or symbol for the logo icon
-  logoInitial: "🛡️",
+  // Minimalist typographic mark
+  logoInitial: "E",
 
   // Multilingual Brand Names
   brandName: {
@@ -27,16 +26,16 @@ export const APP_CONFIG = {
     hi: "वरिष्ठ नागरिकों के लिए डिजिटल साक्षरता एवं सुरक्षा सहायक"
   },
 
-  // Project Academic Metadata
+  // Academic Metadata (BMSIT&M)
   academic: {
-    institution: "BMS Institute of Technology and Management (BMSIT&M)",
-    department: "Department of Computer Science and Engineering",
+    institution: "BMS Institute of Technology & Management",
+    department: "Department of Computer Science & Engineering",
     courseCode: "1BSOP308",
     scheme: "2025 Scheme",
     academicYear: "2026-27",
     category: "Education; Community Welfare; Public Safety"
   },
 
-  // Storage key prefix to prevent collision
+  // Storage key prefix
   storagePrefix: "senior_literacy_"
 };

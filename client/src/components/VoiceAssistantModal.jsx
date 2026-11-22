@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mic, MicOff, Volume2, X, Sparkles, Clock, AlertTriangle } from 'lucide-react';
+import { Mic, MicOff, Volume2, X, Sparkles, Clock } from 'lucide-react';
 import { speechService } from '../services/speechService';
 import { TASK_GUIDES } from '../data/guides';
 
@@ -18,8 +18,8 @@ export default function VoiceAssistantModal({
 
   const localizedPrompts = {
     en: {
-      title: "Patient Voice Companion",
-      sub: "Infinite-Pause Engine: I wait patiently for you to finish speaking without cutting you off.",
+      title: "Voice Companion",
+      sub: "Cadence-Adaptive: I wait patiently without cutting you off mid-thought.",
       speakBtn: "Tap & Speak in English, Kannada or Hindi",
       listening: "Listening... Take your time, Amma.",
       waiting: "Holding open... Thinking or taking a breath? I'm waiting.",
@@ -27,7 +27,7 @@ export default function VoiceAssistantModal({
       close: "Close"
     },
     kn: {
-      title: "ಸಹಾಯಕ್ ಧ್ವನಿ ಮಿತ್ರ",
+      title: "ಧ್ವನಿ ಮಿತ್ರ",
       sub: "ಶಾಂತ ಧ್ವನಿ ವ್ಯವಸ್ಥೆ: ನೀವು ಮಾತನಾಡುವಾಗ ನಿಧಾನವಾದರೂ ಇದು ಮಧ್ಯದಲ್ಲೇ ಕಟ್ ಆಗುವುದಿಲ್ಲ.",
       speakBtn: "ಮಾತನಾಡಲು ಮೈಕ್ ಒತ್ತಿರಿ",
       listening: "ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದ್ದೇನೆ... ನಿಧಾನವಾಗಿ ಮಾತನಾಡಿ ಅಮ್ಮಾ.",
@@ -36,8 +36,8 @@ export default function VoiceAssistantModal({
       close: "ಮುಚ್ಚಿ"
     },
     hi: {
-      title: "धैर्यवान वॉयस साथी",
-      sub: "अनंत-ठहराव तकनीक: आपकी बात पूरी होने तक यह बीच में नहीं कटेगा।",
+      title: "वॉयस साथी",
+      sub: "धैर्यवान तकनीक: आपकी बात पूरी होने तक यह बीच में नहीं कटेगा।",
       speakBtn: "माइक दबाकर बोलें",
       listening: "सुन रहा हूँ... आराम से बोलिए माताजी।",
       waiting: "सांस ले रहे हैं या सोच रहे हैं? मैं धैर्य से सुन रहा हूँ।",
@@ -58,7 +58,7 @@ export default function VoiceAssistantModal({
       }
     };
 
-    speechService.onCadenceFeedback = ({ isIncomplete, extendedPauseMs, message }) => {
+    speechService.onCadenceFeedback = ({ isIncomplete }) => {
       setIsExtendedPauseActive(isIncomplete);
       setCadenceStatus(isIncomplete ? text.waiting : text.listening);
     };
@@ -90,15 +90,15 @@ export default function VoiceAssistantModal({
   const processVoiceCommand = (command) => {
     const lower = command.toLowerCase();
 
-    // 1. Check if user is asking about a scam
+    // Scam checking
     if (lower.includes('scam') || lower.includes('fraud') || lower.includes('fake') || 
         lower.includes('electricity') || lower.includes('bill') || lower.includes('ವಂಚನೆ') || 
         lower.includes('ಕರೆಂಟ್') || lower.includes('धोखा') || lower.includes('बिजली')) {
       const reply = language === 'kn'
-        ? "ಇದು ನಕಲಿ ಸಂದೇಶವಾಗಿರಬಹುದು! ದಯವಿಟ್ಟು ಒಟಿಪಿ ಅಥವಾ ಯಾವುದೇ ಅಪರಿಚಿತ ಲಿಂಕ್ ಮುಟ್ಟಬೇಡಿ. ನಮ್ಮ ವಂಚನೆ ಪರೀಕ್ಷಕದಲ್ಲಿ ನೋಡೋಣ."
+        ? "ಇದು ನಕಲಿ ಸಂದೇಶವಾಗಿರಬಹುದು! ದಯವಿಟ್ಟು ಒಟಿಪಿ ಅಥವಾ ಯಾವುದೇ ಅಪರಿಚಿತ ಲಿಂಕ್ ಮುಟ್ಟಬೇಡಿ."
         : language === 'hi'
-        ? "यह धोखाधड़ी का संदेश हो सकता है! कृपया कोई ओटीपी साझा न करें। आइए इसे जांचें।"
-        : "Be careful! This sounds like a scam alert. Never share OTPs or install APK files. Let's verify it together.";
+        ? "यह धोखाधड़ी का संदेश हो सकता है! कृपया कोई ओटीपी साझा न करें।"
+        : "Be careful! This sounds like a scam alert. Never share OTPs or install APK files.";
 
       setAssistantReply(reply);
       speechService.speak(reply, language, () => {
@@ -107,7 +107,7 @@ export default function VoiceAssistantModal({
       return;
     }
 
-    // 2. Check matching task guides
+    // Matching task guides
     let matchedGuide = null;
     if (lower.includes('video') || lower.includes('ವಿಡಿಯೋ') || lower.includes('वीडियो')) {
       matchedGuide = TASK_GUIDES.find(g => g.id === 'whatsapp-video-call');
@@ -126,10 +126,10 @@ export default function VoiceAssistantModal({
     if (matchedGuide) {
       const guideTitle = matchedGuide.title[language] || matchedGuide.title.en;
       const reply = language === 'kn'
-        ? `ನಾನು ${guideTitle} ಮಾರ್ಗದರ್ಶಿಯನ್ನು ತೆರೆಯುತ್ತಿದ್ದೇನೆ. ಹಂತ ಹಂತವಾಗಿ ಜೊತೆಯಾಗಿ ಕಲಿಯೋಣ.`
+        ? `ನಾನು ${guideTitle} ಮಾರ್ಗದರ್ಶಿಯನ್ನು ತೆರೆಯುತ್ತಿದ್ದೇನೆ.`
         : language === 'hi'
-        ? `मैं ${guideTitle} गाइड खोल रहा हूँ। आइए साथ में सीखते हैं।`
-        : `Opening the guide for ${guideTitle}. Let's do it step by step together.`;
+        ? `मैं ${guideTitle} गाइड खोल रहा हूँ।`
+        : `Opening ${guideTitle}. Let's do it together.`;
 
       setAssistantReply(reply);
       speechService.speak(reply, language, () => {
@@ -138,10 +138,10 @@ export default function VoiceAssistantModal({
       });
     } else {
       const generalReply = language === 'kn'
-        ? `ನಾನು ಕೇಳಿಸಿಕೊಂಡೆ: "${command}". ನಾನು ನಿಮಗೆ 20 ಡಿಜಿಟಲ್ ಮಾರ್ಗದರ್ಶಿಗಳಲ್ಲಿ ಸಹಾಯ ಮಾಡಬಲ್ಲೆ.`
+        ? `ನಾನು ಕೇಳಿಸಿಕೊಂಡೆ: "${command}".`
         : language === 'hi'
-        ? `मैंने सुना: "${command}". मैं आपको किसी भी डिजिटल कार्य में मदद कर सकता हूँ।`
-        : `I heard: "${command}". I am ready to guide you step-by-step through any smartphone task or verify any suspicious message.`;
+        ? `मैंने सुना: "${command}".`
+        : `I heard: "${command}". I am ready to guide you step-by-step.`;
 
       setAssistantReply(generalReply);
       speechService.speak(generalReply, language);
@@ -151,8 +151,8 @@ export default function VoiceAssistantModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border-4 border-amber-400">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+      <div className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-zinc-200 dark:border-zinc-800">
         {/* Close Button */}
         <button
           onClick={() => {
@@ -160,110 +160,107 @@ export default function VoiceAssistantModal({
             speechService.stopSpeaking();
             onClose();
           }}
-          className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200"
+          className="absolute top-5 right-5 p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200"
           aria-label={text.close}
         >
-          <X className="w-6 h-6" />
+          <X className="w-5 h-5" />
         </button>
 
-        {/* Header */}
+        {/* Minimalist Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300 text-xs font-bold mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Cadence-Adaptive Infinite-Pause VAD</span>
+          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-semibold mb-3 border border-zinc-200 dark:border-zinc-700">
+            <Sparkles className="w-3 h-3" />
+            <span>Cadence-Adaptive VAD</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+          <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
             {text.title}
           </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-md mx-auto">
+          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1 max-w-sm mx-auto">
             {text.sub}
           </p>
         </div>
 
-        {/* Giant Microphone Button */}
+        {/* Microphone Button */}
         <div className="flex flex-col items-center justify-center my-6">
           <button
             onClick={toggleListening}
-            className={`w-28 h-28 sm:w-32 sm:h-32 rounded-full flex items-center justify-center transition-all shadow-xl relative ${
+            className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center transition-all shadow-md relative ${
               isListening
-                ? 'bg-red-500 text-white scale-105 ring-8 ring-red-200 dark:ring-red-950/80 animate-pulse'
-                : 'bg-amber-500 text-slate-950 hover:bg-amber-400 hover:scale-102'
+                ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 scale-105 ring-4 ring-zinc-300 dark:ring-zinc-700 animate-pulse'
+                : 'bg-black text-white dark:bg-white dark:text-black hover:opacity-90'
             }`}
           >
             {isListening ? (
-              <Mic className="w-14 h-14" />
+              <Mic className="w-10 h-10" />
             ) : (
-              <MicOff className="w-14 h-14" />
+              <MicOff className="w-10 h-10" />
             )}
           </button>
 
-          <span className="mt-4 text-sm font-bold text-slate-700 dark:text-slate-300">
+          <span className="mt-4 text-xs font-semibold text-zinc-600 dark:text-zinc-300">
             {isListening ? "Listening... (Tap to finish)" : text.speakBtn}
           </span>
         </div>
 
-        {/* Live Cadence Status Pill */}
+        {/* Cadence Status Box */}
         <div className={`p-4 rounded-2xl mb-4 text-center transition-all border ${
           isExtendedPauseActive
-            ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 text-amber-900 dark:text-amber-200'
-            : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
+            ? 'bg-zinc-100 dark:bg-zinc-800/80 border-zinc-400 text-zinc-900 dark:text-zinc-100'
+            : 'bg-zinc-50 dark:bg-zinc-800/40 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300'
         }`}>
-          <div className="flex items-center justify-center space-x-2 text-sm font-bold">
-            <Clock className={`w-4 h-4 ${isExtendedPauseActive ? 'text-amber-600 animate-spin' : 'text-slate-400'}`} />
+          <div className="flex items-center justify-center space-x-2 text-xs font-semibold">
+            <Clock className={`w-3.5 h-3.5 ${isExtendedPauseActive ? 'animate-spin' : 'text-zinc-400'}`} />
             <span>{cadenceStatus}</span>
           </div>
 
           {transcript && (
-            <div className="mt-3 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 font-semibold text-lg text-slate-900 dark:text-white">
+            <div className="mt-3 p-3 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-700 font-medium text-base text-zinc-900 dark:text-white">
               "{transcript}"
             </div>
           )}
 
           {assistantReply && (
-            <div className="mt-3 p-3 bg-emerald-50 dark:bg-emerald-950/60 rounded-xl border border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 text-left">
-              <div className="flex items-center space-x-1.5 text-xs font-bold uppercase tracking-wider mb-1 text-emerald-700 dark:text-emerald-400">
-                <Volume2 className="w-3.5 h-3.5" />
-                <span>Assistant Spoken Response</span>
+            <div className="mt-3 p-3 bg-zinc-100 dark:bg-zinc-800 rounded-xl border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 text-left">
+              <div className="flex items-center space-x-1.5 text-[11px] font-bold uppercase tracking-wider mb-1 text-zinc-500">
+                <Volume2 className="w-3 h-3" />
+                <span>Response</span>
               </div>
-              <p className="text-base font-medium">{assistantReply}</p>
+              <p className="text-sm font-medium">{assistantReply}</p>
             </div>
           )}
         </div>
 
-        {/* Quick Sample Prompts */}
+        {/* Preset Queries */}
         <div className="text-center">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-            Try saying:
+          <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+            Suggested Prompts:
           </p>
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-wrap gap-1.5 justify-center">
             {language === 'kn' ? (
               <>
-                <button onClick={() => processVoiceCommand('ವಿಡಿಯೋ ಕಾಲ್ ಮಾಡುವುದು ಹೇಗೆ?')} className="text-xs px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 font-medium hover:bg-amber-100">
+                <button onClick={() => processVoiceCommand('ವಿಡಿಯೋ ಕಾಲ್ ಮಾಡುವುದು ಹೇಗೆ?')} className="text-xs px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 font-medium hover:bg-zinc-200">
                   "ವಿಡಿಯೋ ಕಾಲ್ ಮಾಡುವುದು ಹೇಗೆ?"
                 </button>
-                <button onClick={() => processVoiceCommand('ವಿದ್ಯುತ್ ಬಿಲ್ ಮೆಸೇಜ್ ವಂಚನೆಯೇ?')} className="text-xs px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 font-medium hover:bg-amber-100">
+                <button onClick={() => processVoiceCommand('ವಿದ್ಯುತ್ ಬಿಲ್ ಮೆಸೇಜ್ ವಂಚನೆಯೇ?')} className="text-xs px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 font-medium hover:bg-zinc-200">
                   "ಕರೆಂಟ್ ಬಿಲ್ ಮೆಸೇಜ್ ವಂಚನೆಯೇ?"
                 </button>
               </>
             ) : language === 'hi' ? (
               <>
-                <button onClick={() => processVoiceCommand('वीडियो कॉल कैसे करें?')} className="text-xs px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 font-medium hover:bg-amber-100">
+                <button onClick={() => processVoiceCommand('वीडियो कॉल कैसे करें?')} className="text-xs px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 font-medium hover:bg-zinc-200">
                   "वीडियो कॉल कैसे करें?"
                 </button>
-                <button onClick={() => processVoiceCommand('क्या यह बिजली मैसेज फर्जी है?')} className="text-xs px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 font-medium hover:bg-amber-100">
+                <button onClick={() => processVoiceCommand('क्या यह बिजली मैसेज फर्जी है?')} className="text-xs px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 font-medium hover:bg-zinc-200">
                   "क्या यह बिजली मैसेज फर्जी है?"
                 </button>
               </>
             ) : (
               <>
-                <button onClick={() => processVoiceCommand('How do I make a video call?')} className="text-xs px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 font-medium hover:bg-amber-100">
+                <button onClick={() => processVoiceCommand('How do I make a video call?')} className="text-xs px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 font-medium hover:bg-zinc-200">
                   "How do I make a video call?"
                 </button>
-                <button onClick={() => processVoiceCommand('Is this electricity bill SMS a scam?')} className="text-xs px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 font-medium hover:bg-amber-100">
+                <button onClick={() => processVoiceCommand('Is this electricity bill SMS a scam?')} className="text-xs px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 font-medium hover:bg-zinc-200">
                   "Is this electricity bill SMS a scam?"
-                </button>
-                <button onClick={() => processVoiceCommand('Turn on torch')} className="text-xs px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 font-medium hover:bg-amber-100">
-                  "Turn on torch"
                 </button>
               </>
             )}
