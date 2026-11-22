@@ -137,12 +137,6 @@ export default function App() {
                 {/* Classy Editorial Hero Card */}
                 <div className="rounded-3xl p-8 sm:p-12 bg-zinc-900 text-white dark:bg-zinc-900/90 border border-zinc-800 shadow-md mb-10 relative overflow-hidden">
                   <div className="max-w-2xl relative z-10">
-                    <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700 mb-4">
-                      <span>{APP_CONFIG.academic.institution}</span>
-                      <span>•</span>
-                      <span>{APP_CONFIG.academic.courseCode}</span>
-                    </div>
-
                     <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4">
                       {brandHeading}
                     </h2>
