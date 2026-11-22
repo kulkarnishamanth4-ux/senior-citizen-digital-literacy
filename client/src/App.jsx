@@ -7,9 +7,9 @@ import {
   ShieldCheck, 
   Users, 
   Mic, 
-  Sparkles,
-  ArrowUpRight,
-  CheckCircle2
+  ArrowUpRight, 
+  CheckCircle2,
+  Sliders
 } from 'lucide-react';
 import Navbar from './components/Navbar';
 import SpotlightGuide from './components/SpotlightGuide';
@@ -19,20 +19,45 @@ import ScamDetector from './components/ScamDetector';
 import DigitalVaccineSandbox from './components/DigitalVaccineSandbox';
 import PrePostTest from './components/PrePostTest';
 import CaregiverDashboard from './components/CaregiverDashboard';
+import OnboardingModal from './components/OnboardingModal';
 import { TASK_GUIDES } from './data/guides';
 import { guardianService } from './services/guardianService';
 import { APP_CONFIG } from './config/appConfig';
 
 export default function App() {
-  const [language, setLanguage] = useState('en'); // 'en' | 'kn' | 'hi'
-  const [zoomLevel, setZoomLevel] = useState(115); // 100, 115, 130, 150, 175, 200
+  const prefix = APP_CONFIG.storagePrefix;
+
+  // Setup / Onboarding state
+  const [hasCompletedSetup, setHasCompletedSetup] = useState(() => {
+    try {
+      return localStorage.getItem(`${prefix}setup_done`) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const [language, setLanguage] = useState(() => {
+    try {
+      return localStorage.getItem(`${prefix}preferred_lang`) || 'en';
+    } catch {
+      return 'en';
+    }
+  });
+
+  const [zoomLevel, setZoomLevel] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`${prefix}preferred_zoom`);
+      return saved ? parseInt(saved, 10) : 115;
+    } catch {
+      return 115;
+    }
+  });
+
   const [theme, setTheme] = useState('light'); // 'light' | 'dark'
   const [activeTab, setActiveTab] = useState('guides');
   const [activeGuide, setActiveGuide] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [isVoiceOpen, setIsVoiceOpen] = useState(false);
-
-  const prefix = APP_CONFIG.storagePrefix;
 
   // Persistence State
   const [completedGuides, setCompletedGuides] = useState(() => {
@@ -70,7 +95,14 @@ export default function App() {
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, [theme, zoomLevel]);
+    localStorage.setItem(`${prefix}preferred_zoom`, zoomLevel.toString());
+    localStorage.setItem(`${prefix}preferred_lang`, language);
+  }, [theme, zoomLevel, language]);
+
+  const handleFinishSetup = () => {
+    setHasCompletedSetup(true);
+    localStorage.setItem(`${prefix}setup_done`, 'true');
+  };
 
   const handleCompleteGuide = (guideId) => {
     if (!completedGuides.includes(guideId)) {
@@ -104,7 +136,18 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors">
-      {/* Refined Minimalist Navbar */}
+      {/* 1. INITIAL ONBOARDING: Ask Language & Zoom Preference First */}
+      {!hasCompletedSetup && (
+        <OnboardingModal
+          currentLanguage={language}
+          setLanguage={setLanguage}
+          currentZoom={zoomLevel}
+          setZoomLevel={setZoomLevel}
+          onFinish={handleFinishSetup}
+        />
+      )}
+
+      {/* 2. MAIN APPLICATION (Revealed after preferences are chosen) */}
       <Navbar
         language={language}
         setLanguage={setLanguage}
@@ -149,13 +192,24 @@ export default function App() {
                         : "Purpose-built digital autonomy and cyber fraud defense for senior citizens. Structured step-by-step guidance, calm cadence speech, and active coercion interception."}
                     </p>
 
-                    <button
-                      onClick={() => setIsVoiceOpen(true)}
-                      className="px-6 py-3.5 rounded-xl bg-white text-black hover:bg-zinc-200 font-bold text-sm sm:text-base flex items-center space-x-2 shadow-xs transition-all"
-                    >
-                      <Mic className="w-4 h-4 text-black" />
-                      <span>{language === 'kn' ? "ಧ್ವನಿ ಮೂಲಕ ಮಾತನಾಡಿ" : language === 'hi' ? "बोलकर पूछें" : "Voice Assistant (Infinite-Pause VAD)"}</span>
-                    </button>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        onClick={() => setIsVoiceOpen(true)}
+                        className="px-6 py-3.5 rounded-xl bg-white text-black hover:bg-zinc-200 font-bold text-sm sm:text-base flex items-center space-x-2 shadow-xs transition-all"
+                      >
+                        <Mic className="w-4 h-4 text-black" />
+                        <span>{language === 'kn' ? "ಧ್ವನಿ ಮೂಲಕ ಮಾತನಾಡಿ" : language === 'hi' ? "बोलकर पूछें" : "Voice Assistant (Infinite-Pause VAD)"}</span>
+                      </button>
+
+                      <button
+                        onClick={() => setHasCompletedSetup(false)}
+                        className="px-4 py-3.5 rounded-xl border border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800 text-xs sm:text-sm font-semibold flex items-center space-x-1.5 transition-all"
+                        title="Re-run Language & Zoom Setup"
+                      >
+                        <Sliders className="w-4 h-4" />
+                        <span>Change Setup</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -276,7 +330,7 @@ export default function App() {
         )}
       </main>
 
-      {/* Classy Floating Microphone Action Button */}
+      {/* Floating Microphone Button */}
       <div className="fixed bottom-6 right-6 z-40">
         <button
           onClick={() => setIsVoiceOpen(true)}
@@ -296,7 +350,7 @@ export default function App() {
           setActiveTab('guides');
           setActiveGuide(guide);
         }}
-        onCheckScamQuery={(query) => {
+        onCheckScamQuery={() => {
           setActiveTab('scam-check');
         }}
       />
