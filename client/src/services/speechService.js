@@ -18,9 +18,7 @@ class CadenceAdaptiveSpeechService {
     this.onResultCallback = null;
     this.onStatusCallback = null;
     this.onCadenceFeedback = null;
-    this.hasPermissionPrompted = false;
-
-    this.initSpeechRecognition();
+    this.restartTimeout = null;
   }
 
   isSupported() {
@@ -30,23 +28,27 @@ class CadenceAdaptiveSpeechService {
     );
   }
 
-  initSpeechRecognition() {
-    if (typeof window === 'undefined') return;
+  /**
+   * Creates a fresh SpeechRecognition instance
+   */
+  createRecognitionInstance() {
+    if (typeof window === 'undefined') return null;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
+    if (!SpeechRecognition) return null;
 
     try {
-      this.recognition = new SpeechRecognition();
-      this.recognition.continuous = true;
-      this.recognition.interimResults = true;
-      this.recognition.maxAlternatives = 1;
+      const rec = new SpeechRecognition();
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.maxAlternatives = 1;
+      rec.lang = this.lang;
 
-      this.recognition.onstart = () => {
+      rec.onstart = () => {
         this.isListening = true;
         this.updateStatus('listening', 'Listening carefully... Take your time, Amma.');
       };
 
-      this.recognition.onresult = (event) => {
+      rec.onresult = (event) => {
         let interimTranscript = '';
         let finalTranscript = '';
 
@@ -69,46 +71,70 @@ class CadenceAdaptiveSpeechService {
         }
       };
 
-      this.recognition.onerror = (event) => {
-        console.warn('[SpeechService] Recognition event error:', event.error);
+      rec.onerror = (event) => {
+        console.warn('[SpeechService] Recognition error:', event.error);
+
+        // 'no-speech' is a normal transient pause in continuous listening — do NOT kill the session
+        if (event.error === 'no-speech') {
+          return;
+        }
+
+        // 'aborted' is triggered during restarts or manual stops — ignore
+        if (event.error === 'aborted') {
+          return;
+        }
+
         if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
           this.isListening = false;
-          this.updateStatus('error', 'Microphone permission was denied. Please click the lock or camera/mic icon in your browser address bar to allow microphone access.');
-        } else if (event.error === 'no-speech') {
-          // If no speech heard yet, don't crash
-          this.updateStatus('listening', 'Waiting for you to speak... Tap mic when ready.');
-        } else if (event.error === 'network') {
-          this.isListening = false;
-          this.updateStatus('error', 'Speech service network error. Please check your internet connection or type below.');
-        } else if (event.error === 'audio-capture') {
+          this.updateStatus('error', 'Microphone permission was denied. Please allow microphone access in your browser address bar.');
+          return;
+        }
+
+        if (event.error === 'audio-capture') {
           this.isListening = false;
           this.updateStatus('error', 'No microphone detected on your device. Please plug in or enable a microphone.');
-        } else {
-          this.updateStatus('error', `Speech error: ${event.error}`);
+          return;
         }
+
+        if (event.error === 'network') {
+          this.isListening = false;
+          this.updateStatus('error', 'Speech recognition network error. Please check your internet or type your question below.');
+          return;
+        }
+
+        this.updateStatus('error', `Speech error: ${event.error}`);
       };
 
-      this.recognition.onend = () => {
-        // Only restart if explicitly listening and no fatal error occurred
+      rec.onend = () => {
+        // If user is supposed to still be talking and did not click stop, keep listening alive
         if (this.isListening) {
-          try {
-            this.recognition.start();
-          } catch (e) {
-            this.isListening = false;
-            this.updateStatus('idle', 'Tap microphone to speak');
-          }
+          clearTimeout(this.restartTimeout);
+          this.restartTimeout = setTimeout(() => {
+            if (this.isListening) {
+              try {
+                this.recognition = this.createRecognitionInstance();
+                if (this.recognition) {
+                  this.recognition.start();
+                }
+              } catch (e) {
+                console.warn("[SpeechService] Restart attempt info:", e.message);
+              }
+            }
+          }, 120);
         } else {
           this.updateStatus('idle', 'Tap microphone to speak');
         }
       };
+
+      return rec;
     } catch (e) {
       console.warn('[SpeechService] Could not initialize recognition:', e);
+      return null;
     }
   }
 
   /**
    * Evaluates whether the pause is mid-sentence or final
-   * If the sentence is incomplete, extends the silence timeout
    */
   handleCadencePause(text) {
     if (this.adaptiveTimeout) {
@@ -133,9 +159,6 @@ class CadenceAdaptiveSpeechService {
     }, pauseAllowance);
   }
 
-  /**
-   * Heuristic check for incomplete grammar / trailing connective words
-   */
   isThoughtIncomplete(text) {
     const lower = text.toLowerCase().trim();
     const trailingConnectors = [
@@ -148,7 +171,7 @@ class CadenceAdaptiveSpeechService {
     const lastWord = words[words.length - 1];
 
     if (trailingConnectors.includes(lastWord)) return true;
-    if (words.length <= 2) return true; // short fragments often have a follow-up
+    if (words.length <= 2) return true;
     return false;
   }
 
@@ -161,27 +184,10 @@ class CadenceAdaptiveSpeechService {
     }
   }
 
-  /**
-   * Proactively request mic permission via getUserMedia first,
-   * ensuring browser dialog appears if not yet granted.
-   */
-  async requestMicPermission() {
-    if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        // Release immediate audio stream; Web Speech API handles its own
-        stream.getTracks().forEach(t => t.stop());
-        return true;
-      } catch (err) {
-        console.warn("Microphone permission check error:", err);
-        return false;
-      }
-    }
-    return true;
-  }
-
-  async startListening(langCode = 'en') {
+  startListening(langCode = 'en') {
     this.currentTranscript = '';
+    clearTimeout(this.restartTimeout);
+
     const langMap = {
       en: 'en-IN',
       kn: 'kn-IN',
@@ -194,48 +200,51 @@ class CadenceAdaptiveSpeechService {
       return false;
     }
 
-    // Proactively verify permission
-    const hasMic = await this.requestMicPermission();
-    if (!hasMic) {
-      this.updateStatus('error', 'Microphone access was denied. Please allow microphone permissions in your browser address bar.');
-      return false;
+    // Cancel any active TTS speech so it doesn't hold or close microphone
+    this.stopSpeaking();
+
+    // Safely stop previous instance if any
+    if (this.recognition) {
+      try {
+        this.recognition.abort();
+      } catch (e) {}
     }
 
-    if (!this.recognition) {
-      this.initSpeechRecognition();
-    }
+    this.isListening = true;
+    this.recognition = this.createRecognitionInstance();
 
     if (this.recognition) {
-      this.recognition.lang = this.lang;
       try {
-        this.isListening = true;
         this.recognition.start();
         return true;
       } catch (err) {
-        // Recognition might already be running
-        console.warn("Recognition start info:", err.message);
-        return true;
+        console.warn("[SpeechService] Start error:", err);
+        this.isListening = false;
+        this.updateStatus('error', 'Could not access microphone. Please tap again or allow microphone permissions.');
+        return false;
       }
     }
 
+    this.isListening = false;
     return false;
   }
 
   stopListening() {
+    clearTimeout(this.restartTimeout);
+    clearTimeout(this.adaptiveTimeout);
+
     const hadTranscript = Boolean(this.currentTranscript);
     const lastText = this.currentTranscript;
 
     this.isListening = false;
-    if (this.adaptiveTimeout) {
-      clearTimeout(this.adaptiveTimeout);
-    }
+
     if (this.recognition) {
       try {
         this.recognition.stop();
       } catch (e) {}
     }
 
-    // If user clicked stop with an active transcript, commit it now
+    // If user clicked stop with an active transcript, deliver it now
     if (hadTranscript && this.onResultCallback) {
       this.currentTranscript = '';
       this.onResultCallback(lastText, true);
@@ -252,7 +261,6 @@ class CadenceAdaptiveSpeechService {
 
   /**
    * Senior-friendly Text-to-Speech (TTS)
-   * Plays with gentle pace and natural pauses
    */
   speak(text, langCode = 'en', onDone = null) {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
@@ -261,7 +269,7 @@ class CadenceAdaptiveSpeechService {
     }
 
     try {
-      window.speechSynthesis.cancel(); // cancel any active speech
+      window.speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
       const langMap = {
@@ -270,10 +278,9 @@ class CadenceAdaptiveSpeechService {
         hi: 'hi-IN'
       };
       utterance.lang = langMap[langCode] || 'en-IN';
-      utterance.rate = this.speechRate; // Calmed, slower speed (0.82x)
+      utterance.rate = this.speechRate;
       utterance.pitch = 1.0;
 
-      // Try finding a matching native voice
       const voices = window.speechSynthesis.getVoices();
       if (voices && voices.length > 0) {
         const matchedVoice = voices.find(v => 
