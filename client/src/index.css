@@ -29,11 +29,21 @@ body.theme-dark {
   color: #f4f4f5;
 }
 
-/* Spotlight Scaffolding Effect in High-End Monochrome */
+/* Live Screen Spotlight Overlay - High visibility without blacking out user's screen */
+.live-spotlight-box {
+  position: absolute;
+  z-index: 35;
+  border: 3px solid #ffffff;
+  outline: 2px solid #000000;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 25px rgba(255, 255, 255, 0.75), inset 0 0 15px rgba(255, 255, 255, 0.15);
+  animation: pulse-border-classy 1.8s infinite ease-in-out;
+}
+
+/* Spotlight Scaffolding Effect for Mockup Previews */
 .spotlight-active {
   position: relative;
   z-index: 50;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.82), 0 0 0 4px #ffffff, 0 0 35px rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 0 0 4px #ffffff, 0 0 25px rgba(255, 255, 255, 0.5) !important;
   animation: pulse-border-classy 2s infinite ease-in-out;
 }
 

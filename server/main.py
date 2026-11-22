@@ -73,6 +73,26 @@ class ScreenAnalyzeResponse(BaseModel):
     guidance_message: str
     action_hint: str
 
+class ChatAssistantRequest(BaseModel):
+    message: str
+    language: Optional[str] = "en"
+    api_key: Optional[str] = None
+
+class ChatAssistantResponse(BaseModel):
+    reply: str
+    suggested_guide_ids: List[str]
+
+class VoiceTranscribeRequest(BaseModel):
+    audio_base64: str
+    mime_type: Optional[str] = "audio/webm"
+    language: Optional[str] = "en"
+    api_key: Optional[str] = None
+
+class VoiceTranscribeResponse(BaseModel):
+    transcript: str
+    reply: str
+    suggested_guide_ids: List[str]
+
 # In-memory alert store for Caregiver Companion
 caregiver_alerts_db = []
 
@@ -353,6 +373,174 @@ Return ONLY a valid JSON object in this exact schema without markdown backticks 
         guidance_message=str(parsed_json.get("guidance_message", "")),
         action_hint=str(parsed_json.get("action_hint", "Tap the highlighted area"))
     )
+
+@app.post("/api/chat-assistant", response_model=ChatAssistantResponse)
+def chat_assistant(req: ChatAssistantRequest):
+    """
+    Intelligent conversational companion for senior citizens.
+    Answers any smartphone or security question directly and politely.
+    """
+    user_query = req.message.strip()
+    lower_query = user_query.lower()
+    api_key = req.api_key or os.getenv("GEMINI_API_KEY")
+
+    # If Gemini API key is available, call Gemini for a natural, personalized answer
+    if api_key and len(api_key.strip()) > 10:
+        try:
+            from google import genai
+            client = genai.Client(api_key=api_key.strip())
+            prompt = f"""You are a warm, gentle, and highly supportive digital literacy companion for elderly Indian grandparents.
+The senior is asking: "{user_query}"
+Language: "{req.language}" (en = English, kn = Kannada, hi = Hindi)
+
+Instructions:
+1. Provide a direct, compassionate, step-by-step answer in 2-3 clear sentences in the requested language.
+2. Explain things in very simple, non-technical words (e.g., describe icons as small pictures on screen).
+3. If they asked how to open an app (e.g. WhatsApp, PhonePe), explain what the icon looks like and where to find it.
+4. If relevant, list matching guide IDs from this list:
+   ['whatsapp-video-call', 'whatsapp-photo-share', 'whatsapp-voice-message', 'make-font-larger', 'turn-on-flashlight', 'mobile-recharge-upi', 'send-money-phonepe', 'sos-emergency-call']
+
+Return ONLY valid JSON matching this schema:
+{{
+  "reply": "Warm answer here in the chosen language",
+  "suggested_guide_ids": ["whatsapp-video-call"]
+}}"""
+            res = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
+            raw = re.sub(r'```json|```', '', res.text or '').strip()
+            data = json.loads(raw)
+            if data and "reply" in data:
+                return ChatAssistantResponse(
+                    reply=str(data.get("reply", "")),
+                    suggested_guide_ids=list(data.get("suggested_guide_ids", []))
+                )
+        except Exception as e:
+            print("Gemini chat assistant fallback:", e)
+
+    # Heuristic fallback answers for common senior citizen queries
+    reply = ""
+    suggested = []
+
+    if "whatsapp" in lower_query:
+        if "open" in lower_query or "start" in lower_query or "where" in lower_query or "ತೆರೆಯುವುದು" in lower_query or "खोल" in lower_query:
+            if req.language == "kn":
+                reply = "ವಾಟ್ಸಾಪ್ ತೆರೆಯಲು, ನಿಮ್ಮ ಮೊಬೈಲ್‌ನ ಮುಖಪುಟದಲ್ಲಿ ಅಥವಾ ಆ್ಯಪ್ ಪಟ್ಟಿಯಲ್ಲಿ ಬಿಳಿ ದೂರವಾಣಿ ಚಿತ್ರವಿರುವ ಹಸಿರು ವೃತ್ತಾಕಾರದ ಐಕಾನ್ ಹುಡುಕಿ, ಅದರ ಮೇಲೆ ಒಮ್ಮೆ ಸ್ಪರ್ಶಿಸಿ."
+            elif req.language == "hi":
+                reply = "व्हाट्सएप खोलने के लिए अपने फोन की होम स्क्रीन पर हरे रंग का गोलाकार आइकन देखें जिसके अंदर सफेद फोन का चित्र बना है, और उस पर एक बार टैप करें।"
+            else:
+                reply = "To open WhatsApp, look on your phone's home screen or apps list for the green circular icon with a white telephone handset inside, and tap on it once."
+            suggested = ["whatsapp-video-call", "whatsapp-photo-share", "whatsapp-voice-message"]
+        elif "call" in lower_query or "video" in lower_query or "ಕಾಲ್" in lower_query or "कॉल" in lower_query:
+            if req.language == "kn":
+                reply = "ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ವಿಡಿಯೋ ಕರೆ ಮಾಡಲು, ವಾಟ್ಸಾಪ್ ತೆರೆದು ನಿಮ್ಮ ಸಂಬಂಧಿಕರ ಹೆಸರನ್ನು ಒತ್ತಿ, ಮೇಲಿನ ಬಲ ಮೂಲೆಯಲ್ಲಿರುವ ಸಣ್ಣ ವಿಡಿಯೋ ಕ್ಯಾಮೆರಾ ಚಿಹ್ನೆಯನ್ನು ಒತ್ತಿರಿ."
+            elif req.language == "hi":
+                reply = "व्हाट्सएप वीडियो कॉल करने के लिए चैट खोलें और ऊपर दाईं ओर दिख रहे छोटे वीडियो कैमरा आइकन पर टैप करें।"
+            else:
+                reply = "To make a WhatsApp video call, open the chat with your family member and tap the small video camera icon in the top right corner."
+            suggested = ["whatsapp-video-call"]
+        else:
+            if req.language == "kn":
+                reply = "ವಾಟ್ಸಾಪ್ ಮೂಲಕ ನೀವು ಮಕ್ಕಳು ಮತ್ತು ಮೊಮ್ಮಕ್ಕಳೊಂದಿಗೆ ಉಚಿತವಾಗಿ ಮಾತನಾಡಬಹುದು, ಫೋಟೋ ಕಳುಹಿಸಬಹುದು ಮತ್ತು ಮುಖಾಮುಖಿ ವಿಡಿಯೋ ಕರೆ ಮಾಡಬಹುದು."
+            elif req.language == "hi":
+                reply = "व्हाट्सएप से आप अपने परिवार से मुफ्त में बात कर सकते हैं, फोटो भेज सकते हैं और वीडियो कॉल कर सकते हैं।"
+            else:
+                reply = "WhatsApp lets you chat, share family photos, and make face-to-face video calls with your loved ones for free."
+            suggested = ["whatsapp-video-call", "whatsapp-photo-share"]
+
+    elif any(w in lower_query for w in ["font", "size", "larger", "bigger", "text", "ದೊಡ್ಡ", "ಅಕ್ಷರ", "बड़ा", "अक्षर"]):
+        if req.language == "kn":
+            reply = "ಅಕ್ಷರಗಳನ್ನು ದೊಡ್ಡದಾಗಿಸಲು, ಮೊಬೈಲ್‌ನ 'ಸೆಟ್ಟಿಂಗ್ಸ್' (Settings) ತೆರೆದು, 'ಡಿಸ್ಪ್ಲೇ' (Display) ಆಯ್ಕೆಮಾಡಿ, 'ಫಾಂಟ್ ಗಾತ್ರ' (Font Size) ಅನ್ನು ನಿಮ್ಮ ಕಣ್ಣಿಗೆ ಹಿತವಾಗುವಂತೆ ಸರಿಸಿ."
+        elif req.language == "hi":
+            reply = "स्क्रीन पर अक्षर बड़े करने के लिए फोन की 'सेटिंग्स' में जाएं, 'डिस्प्ले' पर टैप करें और 'फ़ॉन्ट साइज़' को अपनी सुविधानुसार बढ़ा लें।"
+        else:
+            reply = "To make screen text larger, open your phone Settings, tap 'Display', and then tap 'Font Size' to adjust the slider to a comfortable reading size."
+        suggested = ["make-font-larger"]
+
+    elif any(w in lower_query for w in ["torch", "light", "flashlight", "ಟಾರ್ಚ್", "ಬೆಳಕು", "टॉर्च"]):
+        if req.language == "kn":
+            reply = "ಟಾರ್ಚ್ ಆನ್ ಮಾಡಲು, ನಿಮ್ಮ ಮೊಬೈಲ್ ಸ್ಕ್ರೀನ್‌ನ ಮೇಲಿನ ತುದಿಯಿಂದ ಕೆಳಗೆ ಬೆರಳಿನಿಂದ ಎಳೆಯಿರಿ (Swipe down), ನಂತರ ಅಲ್ಲಿ ಕಾಣುವ ಟಾರ್ಚ್ ಐಕಾನ್ ಒತ್ತಿರಿ."
+        elif req.language == "hi":
+            reply = "टॉर्च जलाने के लिए स्क्रीन के सबसे ऊपर से नीचे की ओर स्वाइप करें और टॉर्च वाले आइकन पर टैप करें।"
+        else:
+            reply = "To turn on the torch, swipe down from the very top of your phone screen to open Quick Settings, and tap the Flashlight icon."
+        suggested = ["turn-on-flashlight"]
+
+    elif any(w in lower_query for w in ["scam", "fraud", "fake", "otp", "pin", "ವಂಚನೆ", "धोखा"]):
+        if req.language == "kn":
+            reply = "ಎಚ್ಚರ! ಯಾವುದೇ ಅಪರಿಚಿತ ವ್ಯಕ್ತಿಯೊಂದಿಗೆ ಫೋನಿನಲ್ಲಿ ಒಟಿಪಿ (OTP) ಅಥವಾ ಯುಪಿಐ ಪಿನ್ ಹಂಚಿಕೊಳ್ಳಬೇಡಿ. ಬ್ಯಾಂಕ್‌ಗಳು ಅಥವಾ ಸರ್ಕಾರಿ ಕಚೇರಿಗಳು ಎಂದಿಗೂ ಫೋನಿನಲ್ಲಿ ಪಿನ್ ಕೇಳುವುದಿಲ್ಲ."
+        elif req.language == "hi":
+            reply = "सावधान रहें! किसी भी व्यक्ति के साथ फोन पर ओटीपी या यूपीआई पिन साझा न करें। बैंक या बिजली विभाग कभी फोन पर पिन नहीं मांगते।"
+        else:
+            reply = "Always remember: Never share your OTP or UPI PIN with anyone over a call. Legitimate banks and government officials will never ask for your passwords."
+        suggested = []
+
+    else:
+        if req.language == "kn":
+            reply = f"ನಾನು ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಅರ್ಥಮಾಡಿಕೊಂಡೆ: '{user_query}'. ನಿಮಗೆ ಬೇಕಾದ ಯಾವುದೇ ಸ್ಮಾರ್ಟ್‌ಫೋನ್ ಸಹಾಯಕ್ಕಾಗಿ ನಾನು ಸಿದ್ಧನಾಗಿದ್ದೇನೆ."
+        elif req.language == "hi":
+            reply = f"मैंने आपका प्रश्न समझ लिया: '{user_query}'. स्मार्टफोन चलाने में किसी भी प्रकार की सहायता के लिए मैं तैयार हूँ।"
+        else:
+            reply = f"I am here to guide you with '{user_query}'. You can ask me how to open apps, adjust settings, or verify suspicious messages."
+        suggested = ["whatsapp-video-call", "make-font-larger", "turn-on-flashlight"]
+
+    return ChatAssistantResponse(reply=reply, suggested_guide_ids=suggested)
+
+@app.post("/api/transcribe-voice", response_model=VoiceTranscribeResponse)
+def transcribe_voice(req: VoiceTranscribeRequest):
+    """
+    Transcribes recorded audio directly via Gemini Multimodal Audio,
+    bypassing browser speech recognition network limitations.
+    """
+    api_key = req.api_key or os.getenv("GEMINI_API_KEY")
+    clean_base64 = req.audio_base64
+    if "," in clean_base64:
+        clean_base64 = clean_base64.split(",")[1]
+
+    if not api_key:
+        return VoiceTranscribeResponse(
+            transcript="Audio received",
+            reply="Please configure GEMINI_API_KEY to enable neural voice processing, or type your question in the text box below.",
+            suggested_guide_ids=[]
+        )
+
+    try:
+        from google import genai
+        from google.genai import types
+
+        client = genai.Client(api_key=api_key.strip())
+        audio_bytes = base64.b64decode(clean_base64)
+        audio_part = types.Part.from_bytes(data=audio_bytes, mime_type=req.mime_type or "audio/webm")
+
+        prompt = f"""Listen to this audio recording from an elderly senior citizen in India.
+1. Transcribe the spoken words accurately in the language they spoke ({req.language}).
+2. Provide a polite, reassuring answer to their question in language '{req.language}'.
+3. Return JSON:
+{{
+  "transcript": "Exact words spoken",
+  "reply": "Friendly 2-sentence response",
+  "suggested_guide_ids": ["whatsapp-video-call"]
+}}"""
+
+        res = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[audio_part, prompt]
+        )
+        raw = re.sub(r'```json|```', '', res.text or '').strip()
+        data = json.loads(raw)
+        return VoiceTranscribeResponse(
+            transcript=str(data.get("transcript", "Audio query")),
+            reply=str(data.get("reply", "I am here to guide you.")),
+            suggested_guide_ids=list(data.get("suggested_guide_ids", []))
+        )
+    except Exception as e:
+        print("Voice transcription error:", e)
+        return VoiceTranscribeResponse(
+            transcript="Audio query",
+            reply="Could not process voice audio at this moment. Please type your question in the box below.",
+            suggested_guide_ids=[]
+        )
 
 @app.get("/api/caregiver/alerts")
 def get_caregiver_alerts():

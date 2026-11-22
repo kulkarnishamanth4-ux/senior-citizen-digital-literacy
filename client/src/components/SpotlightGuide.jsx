@@ -15,7 +15,7 @@ import {
   Scan,
   AlertCircle,
   RefreshCw,
-  Sparkles
+  Maximize2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { speechService } from '../services/speechService';
@@ -39,7 +39,7 @@ export default function SpotlightGuide({
   const [analysisError, setAnalysisError] = useState(null);
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [apiKeyDraft, setApiKeyDraft] = useState('');
-  const [apiKeyStatus, setApiKeyStatus] = useState(null); // null | 'validating' | 'valid' | 'invalid'
+  const [apiKeyStatus, setApiKeyStatus] = useState(null);
   const [autoScanEnabled, setAutoScanEnabled] = useState(true);
   const [scanCount, setScanCount] = useState(0);
   const [isVisionReady, setIsVisionReady] = useState(() => Boolean(screenVisionService.getStoredApiKey()));
@@ -69,16 +69,23 @@ export default function SpotlightGuide({
     };
   }, []);
 
-  // Attach live screenStream to video element whenever screenStream changes
+  // Ensure video element plays the stream reliably
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+
     if (screenStream) {
       video.srcObject = screenStream;
-      video.play().catch(err => {
-        console.warn("Video play error:", err);
-      });
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(err => {
+          console.warn("Video play error in effect:", err);
+        });
+      }
     } else {
       video.srcObject = null;
     }
@@ -119,10 +126,10 @@ export default function SpotlightGuide({
       if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
         throw new Error(
           language === 'kn'
-            ? "ನಿಮ್ಮ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಸ್ಕ್ರೀನ್ ಹಂಚಿಕೆ ಬೆಂಬಲಿತವಾಗಿಲ್ಲ. ದಯವಿಟ್ಟು Chrome ಅಥವಾ Edge ಬ್ರೌಸರ್ ಬಳಸಿ."
+            ? "ನಿಮ್ಮ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಸ್ಕ್ರೀನ್ ಹಂಚಿಕೆ ಬೆಂಬಲಿತವಾಗಿಲ್ಲ. ದಯವಿಟ್ಟು ಡೆಸ್ಕ್‌ಟಾಪ್ ಅಥವಾ ಬೆಂಬಲಿತ ಆಂಡ್ರಾಯ್ಡ್ Chrome ಬ್ರೌಸರ್ ಬಳಸಿ."
             : language === 'hi'
             ? "आपके ब्राउज़र में स्क्रीन शेयर समर्थित नहीं है। कृपया Chrome या Edge का उपयोग करें।"
-            : "Screen sharing is not supported by this browser. Please use Chrome or Edge on desktop or Android."
+            : "Screen sharing is not supported by this browser. Please use Google Chrome or Microsoft Edge on a laptop or desktop computer."
         );
       }
 
@@ -133,7 +140,17 @@ export default function SpotlightGuide({
         audio: false
       });
 
-      // Handle user stopping screen share via native browser bar
+      // Bind directly to video element immediately
+      const video = videoRef.current;
+      if (video) {
+        video.muted = true;
+        video.defaultMuted = true;
+        video.playsInline = true;
+        video.srcObject = stream;
+        video.play().catch(e => console.warn("Immediate video play warning:", e));
+      }
+
+      // Handle user stopping screen share via native browser floating banner
       stream.getVideoTracks()[0].onended = () => {
         stopScreenShare();
       };
@@ -145,7 +162,7 @@ export default function SpotlightGuide({
         ? "ಸ್ಕ್ರೀನ್ ಹಂಚಿಕೆ ಸಕ್ರಿಯಗೊಂಡಿದೆ. AI ನಿಮ್ಮ ಸ್ಕ್ರೀನ್ ನೋಡುತ್ತಿದೆ."
         : language === 'hi'
         ? "स्क्रीन शेयर शुरू हो गया है। AI आपकी स्क्रीन देख रहा है।"
-        : "Screen share active. AI is now looking at your live screen to find the right button.";
+        : "Screen share active. AI is now inspecting your screen to highlight the buttons.";
       speechService.speak(notice, language);
 
       // Check vision readiness
@@ -181,7 +198,6 @@ export default function SpotlightGuide({
   };
 
   const handleVideoMetadata = () => {
-    // Once video track has actual dimensions, trigger initial scan
     setTimeout(() => {
       runSingleAnalysis();
     }, 400);
@@ -222,7 +238,6 @@ export default function SpotlightGuide({
         setVisionResult(result);
         setScanCount(prev => prev + 1);
 
-        // Speak the guidance on first successful detection, or when advice is updated
         if (result.guidanceMessage && result.found) {
           speechService.speak(result.guidanceMessage, language);
         }
@@ -238,11 +253,12 @@ export default function SpotlightGuide({
     }
   }, [isScreenSharing, isAnalyzing, currentStep, guide, language]);
 
-  // --------------- Heuristic fallback coordinates for visual guidance ---------------
+  // --------------- Smart Coordinate Positioning ---------------
+
   const getHeuristicCoords = (targetName = '') => {
     const t = targetName.toLowerCase();
     if (t.includes('video') || t.includes('dots') || t.includes('menu') || t.includes('camera icon')) {
-      return { top: '12%', left: '78%', width: '16%', height: '8%' };
+      return { top: '10%', left: '78%', width: '16%', height: '8%' };
     }
     if (t.includes('send') || t.includes('mic') || t.includes('microphone') || t.includes('submit')) {
       return { top: '82%', left: '76%', width: '18%', height: '10%' };
@@ -251,12 +267,12 @@ export default function SpotlightGuide({
       return { top: '82%', left: '8%', width: '22%', height: '10%' };
     }
     if (t.includes('contact') || t.includes('recipient') || t.includes('name') || t.includes('header')) {
-      return { top: '20%', left: '12%', width: '76%', height: '10%' };
+      return { top: '18%', left: '12%', width: '76%', height: '10%' };
     }
     if (t.includes('torch') || t.includes('flashlight') || t.includes('slider') || t.includes('timeout')) {
-      return { top: '35%', left: '18%', width: '64%', height: '14%' };
+      return { top: '32%', left: '18%', width: '64%', height: '14%' };
     }
-    return { top: '45%', left: '15%', width: '70%', height: '14%' };
+    return { top: '42%', left: '15%', width: '70%', height: '14%' };
   };
 
   const activeBox = (visionResult && visionResult.found && visionResult.cssBox)
@@ -279,7 +295,6 @@ export default function SpotlightGuide({
       setShowApiKeyInput(false);
       setApiKeyDraft('');
 
-      // Start scanning immediately
       setTimeout(() => runSingleAnalysis(), 400);
     } else {
       setApiKeyStatus('invalid');
@@ -334,13 +349,13 @@ export default function SpotlightGuide({
       startShare: "Start Live Screen Share",
       stopShare: "Stop Screen Share",
       shareActive: "Live Device Screen Feed Active",
-      scanning: "AI is looking at your screen...",
-      found: "Target Located — Tap the highlighted button on your screen!",
+      scanning: "AI is inspecting your screen...",
+      found: "Target Located — Tap the highlighted button!",
       notFound: "Looking for target button on screen...",
-      wrongApp: "Please switch to the target app first.",
+      wrongApp: "Please switch to the target app.",
       homeScreen: "Please open the required app.",
       dialogBlocking: "Please dismiss any popups on your screen.",
-      apiKeyLabel: "Configure Gemini API Key for Neural UI Vision",
+      apiKeyLabel: "Configure Gemini API Key for Neural UI Element Detection",
       apiKeySave: "Verify & Save",
       apiKeyValidating: "Verifying Key...",
       reScan: "Scan Screen Now",
@@ -361,7 +376,7 @@ export default function SpotlightGuide({
       scanning: "AI ನಿಮ್ಮ ಸ್ಕ್ರೀನ್ ನೋಡುತ್ತಿದೆ...",
       found: "ಬಟನ್ ಕಂಡುಬಂದಿದೆ — ಗುರುತಿಸಿದ ಜಾಗವನ್ನು ಒತ್ತಿರಿ!",
       notFound: "ಬಟನ್ ಹುಡುಕುತ್ತಿದೆ...",
-      wrongApp: "ದಯವಿಟ್ಟು ಮೊದಲು ಸರಿಯಾದ ಆ್ಯಪ್ ತೆರೆಯಿರಿ.",
+      wrongApp: "ದಯವಿಟ್ಟು ಸರಿಯಾದ ಆ್ಯಪ್ ತೆರೆಯಿರಿ.",
       homeScreen: "ದಯವಿಟ್ಟು ಆ್ಯಪ್ ತೆರೆಯಿರಿ.",
       dialogBlocking: "ದಯವಿಟ್ಟು ಪಾಪ್-ಅಪ್ ಮುಚ್ಚಿರಿ.",
       apiKeyLabel: "ಲೈವ್ ಸ್ಕ್ರೀನ್ ಗುರುತಿಸುವಿಕೆಗಾಗಿ Gemini API Key ಸೇರಿಸಿ",
@@ -385,7 +400,7 @@ export default function SpotlightGuide({
       scanning: "AI आपकी स्क्रीन देख रहा है...",
       found: "बटन मिल गया — चिह्नित जगह पर टैप करें!",
       notFound: "बटन ढूंढ रहा है...",
-      wrongApp: "कृपया पहले सही ऐप खोलें।",
+      wrongApp: "कृपया सही ऐप खोलें।",
       homeScreen: "कृपया ऐप खोलें।",
       dialogBlocking: "कृपया स्क्रीन पर दिख रहा पॉप-अप बंद करें।",
       apiKeyLabel: "लाइव स्क्रीन पहचान के लिए Gemini API Key दर्ज करें",
@@ -418,7 +433,7 @@ export default function SpotlightGuide({
   const statusInfo = getStatusInfo();
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
+    <div className="max-w-5xl mx-auto px-4 py-8 animate-fade-in">
       {/* Back Button */}
       <button
         onClick={() => {
@@ -526,13 +541,13 @@ export default function SpotlightGuide({
           <div className="mt-4 p-4 rounded-2xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-xs text-zinc-800 dark:text-zinc-200 flex items-start space-x-2">
             <AlertCircle className="w-4 h-4 text-zinc-600 dark:text-zinc-400 flex-shrink-0 mt-0.5" />
             <div>
-              <strong>Screen Share Info:</strong> {shareError}
+              <strong>Screen Share Notice:</strong> {shareError}
             </div>
           </div>
         )}
       </div>
 
-      {/* API KEY MODAL (shown if key not set on backend or client) */}
+      {/* API KEY MODAL */}
       {showApiKeyInput && (
         <div className="bg-zinc-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-zinc-800 mb-8">
           <div className="flex items-center space-x-2 mb-3">
@@ -542,10 +557,10 @@ export default function SpotlightGuide({
 
           <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
             {language === 'kn'
-              ? "ಲೈವ್ ಸ್ಕ್ರೀನ್ ಮೇಲೆ ಬಟನ್‌ಗಳನ್ನು ನೈಜ ಸಮಯದಲ್ಲಿ ಗುರುತಿಸಲು Gemini API Key ಅಗತ್ಯವಿದೆ. (ಅಥವಾ ಸರ್ವರ್‌ನಲ್ಲಿ GEMINI_API_KEY ಸಂರಚಿಸಿ)."
+              ? "ಲೈವ್ ಸ್ಕ್ರೀನ್ ಮೇಲೆ ಬಟನ್‌ಗಳನ್ನು ನೈಜ ಸಮಯದಲ್ಲಿ ಗುರುತಿಸಲು Gemini API Key ಅಗತ್ಯವಿದೆ."
               : language === 'hi'
-              ? "लाइव स्क्रीन पर बटन पहचानने के लिए Gemini API Key आवश्यक है। (या सर्वर पर GEMINI_API_KEY सेट करें)।"
-              : "To identify buttons on your live screen feed, you can provide a Gemini API Key here or set GEMINI_API_KEY in your server environment."}
+              ? "लाइव स्क्रीन पर बटन पहचानने के लिए Gemini API Key आवश्यक है।"
+              : "To identify buttons on your live screen, configure GEMINI_API_KEY in Render server settings, or paste a key here for direct browser use."}
           </p>
 
           <div className="flex items-center gap-3">
@@ -605,7 +620,7 @@ export default function SpotlightGuide({
 
         {/* AI Guidance Message */}
         {visionResult && visionResult.guidanceMessage && (
-          <div className="mb-4 p-3 rounded-2xl bg-zinc-900 border border-zinc-800 text-sm font-medium text-zinc-200 leading-relaxed">
+          <div className="mb-4 p-3.5 rounded-2xl bg-zinc-900 border border-zinc-800 text-sm font-medium text-zinc-200 leading-relaxed">
             <div className="flex items-start space-x-2">
               <Eye className="w-4 h-4 text-zinc-400 flex-shrink-0 mt-0.5" />
               <div>
@@ -623,10 +638,12 @@ export default function SpotlightGuide({
           </div>
         )}
 
-        {/* Real Screen Display with Overlay */}
-        <div className="relative mx-auto max-w-md h-96 bg-black rounded-3xl border border-zinc-800 overflow-hidden shadow-2xl flex flex-col justify-between">
+        {/* RESPONSIVE SCREEN DISPLAY: EXPANDS INTO GENEROUS SIZED VIEWPORT */}
+        <div className={`relative mx-auto w-full transition-all duration-300 ${
+          isScreenSharing ? 'max-w-3xl min-h-[460px] sm:min-h-[560px]' : 'max-w-md h-96'
+        } bg-black rounded-3xl border border-zinc-800 overflow-hidden shadow-2xl flex flex-col justify-between`}>
           
-          {/* VIDEO ELEMENT: ALWAYS IN DOM so videoRef is NEVER null */}
+          {/* VIDEO ELEMENT: ALWAYS IN DOM, NEVER BLACKED OUT */}
           <video
             ref={videoRef}
             autoPlay
@@ -652,17 +669,17 @@ export default function SpotlightGuide({
                 <div>
                   <p className="text-sm font-semibold text-zinc-300 mb-1">
                     {language === 'kn'
-                      ? "ನಿಮ್ಮ ನೈಜ ಫೋನ್ ಸ್ಕ್ರೀನ್ ಹಂಚಿಕೊಳ್ಳಿ"
+                      ? "ನಿಮ್ಮ ನೈಜ ಫೋನ್ ಅಥವಾ ಆ್ಯಪ್ ಸ್ಕ್ರೀನ್ ಹಂಚಿಕೊಳ್ಳಿ"
                       : language === 'hi'
-                      ? "अपनी असली फोन स्क्रीन शेयर करें"
-                      : "Share your real phone or app screen"}
+                      ? "अपनी असली फोन या ऐप स्क्रीन शेयर करें"
+                      : "Share your phone or app window live"}
                   </p>
                   <p className="text-xs text-zinc-500 leading-relaxed max-w-xs">
                     {language === 'kn'
-                      ? "ನೀವು ಸ್ಕ್ರೀನ್ ಹಂಚಿಕೊಂಡಾಗ, AI ನಿಮ್ಮ ವಾಟ್ಸಾಪ್ ಅಥವಾ ಫೋನ್‌ಪೇ ನೋಡಿ ಯಾವ ಬಟನ್ ಒತ್ತಬೇಕೆಂದು ಗುರುತಿಸುತ್ತದೆ."
+                      ? "ನೀವು ಸ್ಕ್ರೀನ್ ಹಂಚಿಕೊಂಡಾಗ, AI ನಿಮ್ಮ ವಾಟ್ಸಾಪ್ ಅಥವಾ ಫೋನ್‌ಪೇ ನೋಡಿ ಯಾವ ಬಟನ್ ಒತ್ತಬೇಕೆಂದು ನೈಜ ಸಮಯದಲ್ಲಿ ತೋರಿಸುತ್ತದೆ."
                       : language === 'hi'
-                      ? "जब आप स्क्रीन शेयर करेंगे, AI आपके व्हाट्सएप या फोनपे में देखकर सही बटन पर हाइलाइट करेगा।"
-                      : "When you share your screen, the AI visually inspects your app and highlights the exact button to tap."}
+                      ? "जब आप स्क्रीन शेयर करेंगे, AI आपके व्हाट्सएप या फोनपे में देखकर सही बटन पर लाइव हाइलाइट करेगा।"
+                      : "The AI looks at your real screen feed to highlight buttons and text-boxes with zero mockups."}
                   </p>
                 </div>
                 <button
@@ -679,21 +696,21 @@ export default function SpotlightGuide({
             </div>
           )}
 
-          {/* DYNAMIC SPOTLIGHT OVERLAY (appears over live video OR preview) */}
+          {/* DYNAMIC SPOTLIGHT OVERLAY: HIGH CONTRAST GLOW WITHOUT DARKENING THE SCREEN */}
           <div 
-            className="spotlight-active absolute rounded-2xl bg-white/10 border-3 border-white backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center cursor-pointer transition-all duration-300 z-30"
+            className="live-spotlight-box rounded-2xl flex flex-col items-center justify-center p-2 text-center cursor-pointer transition-all duration-300"
             style={{
-              top: activeBox.top || '40%',
+              top: activeBox.top || '35%',
               left: activeBox.left || '15%',
               width: activeBox.width || '70%',
               height: activeBox.height || '15%',
             }}
             onClick={handleNext}
           >
-            <div className="bg-black text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shadow-md whitespace-nowrap mb-1">
+            <div className="bg-black text-white px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider shadow-xl whitespace-nowrap mb-1 border border-zinc-700">
               🎯 {visionResult?.detectedLabel || currentStep.spotlightTarget}
             </div>
-            <span className="text-[10px] font-extrabold text-white bg-zinc-900/90 px-2 py-0.5 rounded shadow-sm">
+            <span className="text-[10px] font-black text-black bg-white px-2 py-0.5 rounded shadow-md tracking-wider">
               {labels.tapHere}
             </span>
           </div>
@@ -722,7 +739,7 @@ export default function SpotlightGuide({
                     : 'Target detected on your live screen. Tap the highlighted button in your app.')
                  : (language === 'kn' ? 'AI ನಿಮ್ಮ ಸ್ಕ್ರೀನ್ ನೋಡುತ್ತಿದೆ...'
                     : language === 'hi' ? 'AI आपकी स्क्रीन देख रहा है...'
-                    : 'AI is analyzing your live screen...'))
+                    : 'AI is looking at your live screen...'))
               : (language === 'kn' ? 'ಸ್ಕ್ರೀನ್ ಹಂಚಿಕೊಂಡು ಪ್ರಾರಂಭಿಸಿ'
                  : language === 'hi' ? 'स्क्रीन शेयर करके शुरू करें'
                  : 'Share your screen to begin live AI guidance')}
