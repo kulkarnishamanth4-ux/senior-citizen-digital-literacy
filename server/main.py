@@ -1,6 +1,9 @@
 import os
 import re
+import json
+import base64
 from typing import List, Optional
+import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -46,6 +49,29 @@ class StreamEvaluationResponse(BaseModel):
     detected_flags: List[str]
     masked_otp_placeholder: Optional[str]
     action_taken: str
+
+class ScreenBox(BaseModel):
+    ymin: int
+    xmin: int
+    ymax: int
+    xmax: int
+
+class ScreenAnalyzeRequest(BaseModel):
+    image_base64: str
+    task_title: str
+    step_instruction: str
+    target_name: str
+    language: Optional[str] = "en"
+    api_key: Optional[str] = None
+
+class ScreenAnalyzeResponse(BaseModel):
+    found: bool
+    screen_state: str  # FOUND | HOME_SCREEN | WRONG_APP | DIALOG_BLOCKING | NOT_FOUND | NO_API_KEY
+    detected_label: str
+    confidence: float
+    box: Optional[ScreenBox] = None
+    guidance_message: str
+    action_hint: str
 
 # In-memory alert store for Caregiver Companion
 caregiver_alerts_db = []
@@ -164,6 +190,167 @@ def evaluate_stream(req: StreamEvaluationRequest):
         detected_flags=flags,
         masked_otp_placeholder=masked_placeholder,
         action_taken=action
+    )
+
+@app.post("/api/analyze-screen", response_model=ScreenAnalyzeResponse)
+def analyze_screen(req: ScreenAnalyzeRequest):
+    """
+    Analyzes live screen capture using Gemini Vision.
+    Detects real UI buttons/textboxes and returns normalized coordinates for live overlay.
+    """
+    api_key = req.api_key or os.getenv("GEMINI_API_KEY")
+    if not api_key or len(api_key.strip()) < 10:
+        return ScreenAnalyzeResponse(
+            found=False,
+            screen_state="NO_API_KEY",
+            detected_label="Gemini API Key Required",
+            confidence=0.0,
+            box=None,
+            guidance_message=(
+                "ಲೈವ್ ಸ್ಕ್ರೀನ್ ಗುರುತಿಸುವಿಕೆಗಾಗಿ ದಯವಿಟ್ಟು ಜೆಮಿನಿ ಎಪಿಐ ಕೀ ಸೇರಿಸಿ."
+                if req.language == "kn"
+                else "लाइव स्क्रीन पर बटन पहचानने के लिए कृपया जेमिनी एपीआई कुंजी दर्ज करें।"
+                if req.language == "hi"
+                else "Please enter your Gemini API key in settings to enable real-time UI element recognition on your screen."
+            ),
+            action_hint="Configure Gemini API Key"
+        )
+
+    # Clean base64
+    clean_base64 = req.image_base64
+    if "," in clean_base64:
+        clean_base64 = clean_base64.split(",")[1]
+
+    prompt = f"""You are an expert AI Accessibility & Digital Literacy Co-Pilot assisting an elderly senior citizen.
+The senior is sharing their REAL smartphone or computer screen.
+Current Task: "{req.task_title}"
+Current Step Instruction: "{req.step_instruction}"
+Target UI Element to locate: "{req.target_name}"
+
+Carefully analyze this screenshot of the senior's screen:
+1. Determine the screen state:
+   - "FOUND": The target element or relevant button/textbox is visible on this screen.
+   - "HOME_SCREEN": The user is on the phone home screen/launcher and hasn't opened the app yet.
+   - "WRONG_APP": The user is on an unrelated app or wrong screen.
+   - "DIALOG_BLOCKING": A popup, permission prompt, or advertisement is covering the screen.
+   - "NOT_FOUND": The target element is not currently visible (user may need to scroll or wait).
+
+2. If found, locate its EXACT 2D bounding box on this image.
+   Provide coordinates normalized to a 0 to 1000 integer scale:
+   - ymin: Top edge of bounding box (integer 0-1000)
+   - xmin: Left edge of bounding box (integer 0-1000)
+   - ymax: Bottom edge of bounding box (integer 0-1000)
+   - xmax: Right edge of bounding box (integer 0-1000)
+   Ensure the bounding box fits snugly around the target element.
+
+3. Provide a warm, clear spoken guidance message for an elderly senior in language '{req.language}' (en = English, kn = Kannada, hi = Hindi):
+   - In English: Speak gently and simply. Point to where it is (e.g. "I can see your WhatsApp screen. Look at the top right, tap the camera icon.")
+   - In Kannada: Use respectful Kannada (e.g. "ನಿಮ್ಮ ಸ್ಕ್ರೀನ್ ಕಾಣಿಸುತ್ತಿದೆ. ಮೇಲಿನ ಬಲ ಮೂಲೆಯಲ್ಲಿ ಗುರುತಿಸಿರುವ ಕ್ಯಾಮೆರಾ ಬಟನ್ ಮೇಲೆ ಒತ್ತಿರಿ.")
+   - In Hindi: Use respectful Hindi (e.g. "आपकी स्क्रीन दिखाई दे रही है। ऊपर दाईं ओर दिए गए कैमरा बटन पर टैप करें।")
+   - If in wrong app or home screen, tell them kindly which app to open first.
+
+Return ONLY a valid JSON object in this exact schema without markdown backticks or commentary:
+{{
+  "found": true,
+  "screen_state": "FOUND",
+  "detected_label": "Short name of detected element",
+  "confidence": 0.95,
+  "box": {{
+    "ymin": 120,
+    "xmin": 820,
+    "ymax": 180,
+    "xmax": 930
+  }},
+  "guidance_message": "Warm spoken instructions for the senior",
+  "action_hint": "Tap the camera icon"
+}}"""
+
+    # First attempt: google.genai SDK
+    parsed_json = None
+    try:
+        from google import genai
+        from google.genai import types
+
+        client = genai.Client(api_key=api_key.strip())
+        img_bytes = base64.b64decode(clean_base64)
+        part = types.Part.from_bytes(data=img_bytes, mime_type="image/jpeg")
+
+        for model_name in ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-3.8-flash"]:
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=[part, prompt]
+                )
+                raw_text = response.text or ""
+                cleaned = re.sub(r'```json|```', '', raw_text).strip()
+                parsed_json = json.loads(cleaned)
+                if parsed_json:
+                    break
+            except Exception as model_err:
+                continue
+    except Exception as sdk_err:
+        parsed_json = None
+
+    # Fallback to direct REST API if SDK call didn't succeed
+    if not parsed_json:
+        for model_name in ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-3.8-flash"]:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key.strip()}"
+                payload = {
+                    "contents": [{
+                        "parts": [
+                            {"inline_data": {"mime_type": "image/jpeg", "data": clean_base64}},
+                            {"text": prompt}
+                        ]
+                    }],
+                    "generationConfig": {"responseMimeType": "application/json"}
+                }
+                res = requests.post(url, json=payload, timeout=12)
+                if res.status_code == 200:
+                    data = res.json()
+                    candidate_text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                    cleaned = re.sub(r'```json|```', '', candidate_text).strip()
+                    parsed_json = json.loads(cleaned)
+                    if parsed_json:
+                        break
+            except Exception:
+                continue
+
+    if not parsed_json:
+        return ScreenAnalyzeResponse(
+            found=False,
+            screen_state="NOT_FOUND",
+            detected_label="Element not identified",
+            confidence=0.0,
+            box=None,
+            guidance_message=(
+                "ಸ್ಕ್ರೀನ್ ಮೇಲೆ ಬಟನ್ ಕಂಡುಬಂದಿಲ್ಲ. ದಯವಿಟ್ಟು ಸರಿಯಾದ ಅಪ್ಲಿಕೇಶನ್ ತೆರೆಯಿರಿ."
+                if req.language == "kn"
+                else "स्क्रीन पर बटन नहीं मिला। कृपया सही ऐप खोलें।"
+                if req.language == "hi"
+                else "Target button was not identified on this screen. Please ensure the target app is open."
+            ),
+            action_hint="Open target app"
+        )
+
+    box_data = parsed_json.get("box")
+    screen_box = None
+    if parsed_json.get("found") and isinstance(box_data, dict):
+        screen_box = ScreenBox(
+            ymin=int(box_data.get("ymin", 0)),
+            xmin=int(box_data.get("xmin", 0)),
+            ymax=int(box_data.get("ymax", 1000)),
+            xmax=int(box_data.get("xmax", 1000))
+        )
+
+    return ScreenAnalyzeResponse(
+        found=bool(parsed_json.get("found", False)),
+        screen_state=str(parsed_json.get("screen_state", "FOUND" if parsed_json.get("found") else "NOT_FOUND")),
+        detected_label=str(parsed_json.get("detected_label", req.target_name)),
+        confidence=float(parsed_json.get("confidence", 0.9)),
+        box=screen_box,
+        guidance_message=str(parsed_json.get("guidance_message", "")),
+        action_hint=str(parsed_json.get("action_hint", "Tap the highlighted area"))
     )
 
 @app.get("/api/caregiver/alerts")

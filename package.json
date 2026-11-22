@@ -1,7 +1,7 @@
 {
   "name": "senior-citizen-digital-literacy",
   "version": "1.0.0",
-  "description": "AI-Powered Smartphone & Digital Literacy Assistant for Senior Citizens (Sahayak AI)",
+  "description": "AI-Powered Smartphone & Digital Literacy Assistant for Senior Citizens",
   "private": true,
   "scripts": {
     "dev": "npm --prefix client run dev",
