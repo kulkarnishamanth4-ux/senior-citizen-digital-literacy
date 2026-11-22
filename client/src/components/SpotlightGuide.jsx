@@ -50,12 +50,17 @@ export default function SpotlightGuide({
   const currentStep = steps[currentStepIndex] || steps[0];
   const isLastStep = currentStepIndex === steps.length - 1;
 
-  const hasApiKey = Boolean(screenVisionService.getStoredApiKey());
+  const [isVisionReady, setIsVisionReady] = useState(() => Boolean(screenVisionService.getStoredApiKey()));
 
   // --------------- Lifecycle ---------------
 
   useEffect(() => {
     isMountedRef.current = true;
+    screenVisionService.isVisionConfigured().then(ready => {
+      if (isMountedRef.current) {
+        setIsVisionReady(ready);
+      }
+    });
     return () => {
       isMountedRef.current = false;
       clearInterval(analysisTimerRef.current);
@@ -79,7 +84,7 @@ export default function SpotlightGuide({
   useEffect(() => {
     clearInterval(analysisTimerRef.current);
 
-    if (isScreenSharing && autoScanEnabled && hasApiKey) {
+    if (isScreenSharing && autoScanEnabled && isVisionReady) {
       // Run an immediate first scan
       runSingleAnalysis();
 
@@ -92,7 +97,7 @@ export default function SpotlightGuide({
     }
 
     return () => clearInterval(analysisTimerRef.current);
-  }, [isScreenSharing, autoScanEnabled, currentStepIndex, hasApiKey]);
+  }, [isScreenSharing, autoScanEnabled, currentStepIndex, isVisionReady]);
 
   // --------------- Screen Share ---------------
 
@@ -127,9 +132,13 @@ export default function SpotlightGuide({
         : "Screen share active. AI is now watching your live screen to find the right button for you.";
       speechService.speak(notice, language);
 
-      // If no API key, prompt for one
-      if (!hasApiKey) {
-        setShowApiKeyInput(true);
+      // If vision is not confirmed ready, check or prompt for key
+      if (!isVisionReady) {
+        const configured = await screenVisionService.isVisionConfigured();
+        setIsVisionReady(configured);
+        if (!configured) {
+          setShowApiKeyInput(true);
+        }
       }
     } catch (err) {
       console.warn("Screen share error:", err);
@@ -171,11 +180,13 @@ export default function SpotlightGuide({
       if (!isMountedRef.current) return;
 
       if (result.success === false && result.reason === 'NO_API_KEY') {
+        setIsVisionReady(false);
         setShowApiKeyInput(true);
         setAnalysisError(null);
       } else if (result.success === false) {
         setAnalysisError(result.guidanceMessage || result.error || 'Analysis failed.');
       } else {
+        setIsVisionReady(true);
         setVisionResult(result);
         setScanCount(prev => prev + 1);
 
@@ -207,6 +218,7 @@ export default function SpotlightGuide({
     if (testResult.success) {
       screenVisionService.setStoredApiKey(key);
       setApiKeyStatus('valid');
+      setIsVisionReady(true);
       setShowApiKeyInput(false);
       setApiKeyDraft('');
 
@@ -334,7 +346,7 @@ export default function SpotlightGuide({
   const getStatusInfo = () => {
     if (!isScreenSharing) return null;
     if (isAnalyzing) return { text: labels.scanning, color: 'text-zinc-400', icon: Loader2, spin: true };
-    if (!hasApiKey) return { text: labels.apiKeyLabel, color: 'text-yellow-400', icon: Key, spin: false };
+    if (!isVisionReady) return { text: labels.apiKeyLabel, color: 'text-yellow-400', icon: Key, spin: false };
     if (!visionResult) return { text: labels.notFound, color: 'text-zinc-500', icon: Scan, spin: false };
 
     const state = visionResult.screenState;
@@ -395,7 +407,7 @@ export default function SpotlightGuide({
                 {/* Manual Re-scan Button */}
                 <button
                   onClick={runSingleAnalysis}
-                  disabled={isAnalyzing || !hasApiKey}
+                  disabled={isAnalyzing || !isVisionReady}
                   className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-zinc-800 text-white hover:bg-zinc-700 transition-all border border-zinc-600 disabled:opacity-40"
                   title="Manually trigger a new scan"
                 >

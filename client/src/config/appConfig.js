@@ -3,9 +3,11 @@
  * Change the name, branding, or institution details here in ONE place.
  *
  * Environment Variables (set in .env or hosting dashboard):
- *   VITE_APP_NAME       — Override the app display name
- *   VITE_API_URL        — Backend API base URL (default: http://localhost:8000)
- *   VITE_GEMINI_API_KEY — Optional fallback Gemini key (users can also enter in-app)
+ *   VITE_APP_NAME — Override the app display name
+ *   VITE_API_URL  — Backend API base URL (default: http://localhost:8000)
+ *
+ * Server-side only (set on Render, never in frontend):
+ *   GEMINI_API_KEY — Gemini Vision key, kept securely on the backend
  */
 
 const customName = import.meta.env.VITE_APP_NAME || "ElderAssist AI";

@@ -22,7 +22,7 @@ class ScreenVisionService {
     } catch {
       // ignore
     }
-    return import.meta.env.VITE_GEMINI_API_KEY || '';
+    return '';
   }
 
   /**
@@ -39,6 +39,23 @@ class ScreenVisionService {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Check if Gemini Vision is available (either via server-side key on backend, or local key in browser)
+   */
+  async isVisionConfigured() {
+    if (this.getStoredApiKey()) return true;
+    try {
+      const res = await fetch(`${this.apiBaseUrl}/api/health`, { method: 'GET' });
+      if (res.ok) {
+        const data = await res.json();
+        return Boolean(data.gemini_configured);
+      }
+    } catch {
+      // Backend not running / unreachable
+    }
+    return false;
   }
 
   /**
@@ -131,21 +148,8 @@ class ScreenVisionService {
       };
     }
 
-    // 2. Check if we have an API key or need key prompt
-    if (!apiKey) {
-      return {
-        success: false,
-        reason: 'NO_API_KEY',
-        frameDataUrl: frame.dataUrl,
-        guidanceMessage: language === 'kn'
-          ? "ಲೈವ್ ಸ್ಕ್ರೀನ್ ಗುರುತಿಸುವಿಕೆಗಾಗಿ ದಯವಿಟ್ಟು ಜೆಮಿನಿ ಎಪಿಐ ಕೀ (Gemini API Key) ಸೇರಿಸಿ."
-          : language === 'hi'
-          ? "लाइव स्क्रीन पर बटन पहचानने के लिए कृपया जेमिनी एपीआई कुंजी (Gemini API Key) दर्ज करें।"
-          : "Please enter your Gemini API key to enable live neural UI element recognition on your real screen."
-      };
-    }
-
-    // 3. Try backend API first (/api/analyze-screen)
+    // 2. Try backend API first (/api/analyze-screen)
+    // If backend has GEMINI_API_KEY configured in server env, no client key is needed!
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 9000);
@@ -161,7 +165,7 @@ class ScreenVisionService {
           step_instruction: stepInstruction,
           target_name: targetName,
           language: language,
-          api_key: apiKey
+          api_key: apiKey || null
         }),
         signal: controller.signal
       });
@@ -170,33 +174,62 @@ class ScreenVisionService {
 
       if (response.ok) {
         const result = await response.json();
+        // If backend explicitly told us that no key is configured on server or request
+        if (result.screen_state === 'NO_API_KEY') {
+          return {
+            success: false,
+            reason: 'NO_API_KEY',
+            frameDataUrl: frame.dataUrl,
+            guidanceMessage: result.guidance_message || (
+              language === 'kn'
+                ? "ಲೈವ್ ಸ್ಕ್ರೀನ್ ಗುರುತಿಸುವಿಕೆಗಾಗಿ ದಯವಿಟ್ಟು ಜೆಮಿನಿ ಎಪಿಐ ಕೀ ಸೇರಿಸಿ ಅಥವಾ ಸರ್ವರ್‌ನಲ್ಲಿ ಸಂರಚಿಸಿ."
+                : language === 'hi'
+                ? "लाइव स्क्रीन पर बटन पहचानने के लिए कृपया जेमिनी एपीआई कुंजी दर्ज करें।"
+                : "Please configure GEMINI_API_KEY on the server, or enter a key here for direct browser recognition."
+            )
+          };
+        }
         return this._formatDetectionResult(result, frame.dataUrl);
       }
     } catch (backendErr) {
-      console.warn("Backend /api/analyze-screen unavailable or timed out; falling back to direct Gemini call:", backendErr);
+      console.warn("Backend /api/analyze-screen unavailable; trying direct browser call if local key exists:", backendErr.message);
     }
 
-    // 4. Fallback: Direct client-side call to Google Gemini Vision API
-    try {
-      return await this._callGeminiDirect({
-        base64Data: frame.base64Data,
-        dataUrl: frame.dataUrl,
-        taskTitle,
-        stepInstruction,
-        targetName,
-        language,
-        apiKey
-      });
-    } catch (directErr) {
-      console.error("Direct Gemini call failed:", directErr);
-      return {
-        success: false,
-        reason: 'API_ERROR',
-        error: directErr.message,
-        frameDataUrl: frame.dataUrl,
-        guidanceMessage: `Screen analysis error: ${directErr.message || 'Unable to connect to Gemini Vision.'}`
-      };
+    // 3. Fallback: If backend was unreachable, check if client has a local key saved in browser
+    if (apiKey) {
+      try {
+        return await this._callGeminiDirect({
+          base64Data: frame.base64Data,
+          dataUrl: frame.dataUrl,
+          taskTitle,
+          stepInstruction,
+          targetName,
+          language,
+          apiKey
+        });
+      } catch (directErr) {
+        console.error("Direct Gemini call failed:", directErr);
+        return {
+          success: false,
+          reason: 'API_ERROR',
+          error: directErr.message,
+          frameDataUrl: frame.dataUrl,
+          guidanceMessage: `Screen analysis error: ${directErr.message || 'Unable to connect to Gemini Vision.'}`
+        };
+      }
     }
+
+    // 4. Neither backend key nor local browser key is available
+    return {
+      success: false,
+      reason: 'NO_API_KEY',
+      frameDataUrl: frame.dataUrl,
+      guidanceMessage: language === 'kn'
+        ? "ಲೈವ್ ಸ್ಕ್ರೀನ್ ಗುರುತಿಸುವಿಕೆಗಾಗಿ ದಯವಿಟ್ಟು ಜೆಮಿನಿ ಎಪಿಐ ಕೀ ಸೇರಿಸಿ."
+        : language === 'hi'
+        ? "लाइव स्क्रीन पर बटन पहचानने के लिए कृपया जेमिनी एपीआई कुंजी दर्ज करें।"
+        : "Please set GEMINI_API_KEY on the server or enter a key to enable live real-time UI recognition."
+    };
   }
 
   /**

@@ -82,7 +82,8 @@ def health_check():
     return {
         "status": "healthy",
         "service": f"{app_title} Engine",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "gemini_configured": bool(os.getenv("GEMINI_API_KEY"))
     }
 
 @app.post("/api/verify-scam", response_model=ScamVerifyResponse)
