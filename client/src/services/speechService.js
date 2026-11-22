@@ -8,8 +8,8 @@ class CadenceAdaptiveSpeechService {
   constructor() {
     this.recognition = null;
     this.isListening = false;
-    this.speechRate = 0.8; // Calmed, slower speed for elder comprehension
-    this.lang = 'en-US';
+    this.speechRate = 0.82; // Calmed, natural slower pace for elder comprehension
+    this.lang = 'en-IN';
     
     // Cadence timers & state
     this.adaptiveTimeout = null;
@@ -18,16 +18,28 @@ class CadenceAdaptiveSpeechService {
     this.onResultCallback = null;
     this.onStatusCallback = null;
     this.onCadenceFeedback = null;
+    this.hasPermissionPrompted = false;
 
     this.initSpeechRecognition();
   }
 
+  isSupported() {
+    return Boolean(
+      typeof window !== 'undefined' && 
+      (window.SpeechRecognition || window.webkitSpeechRecognition)
+    );
+  }
+
   initSpeechRecognition() {
+    if (typeof window === 'undefined') return;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
+    if (!SpeechRecognition) return;
+
+    try {
       this.recognition = new SpeechRecognition();
       this.recognition.continuous = true;
       this.recognition.interimResults = true;
+      this.recognition.maxAlternatives = 1;
 
       this.recognition.onstart = () => {
         this.isListening = true;
@@ -39,10 +51,11 @@ class CadenceAdaptiveSpeechService {
         let finalTranscript = '';
 
         for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
+          const item = event.results[i];
+          if (item.isFinal) {
+            finalTranscript += item[0].transcript;
           } else {
-            interimTranscript += event.results[i][0].transcript;
+            interimTranscript += item[0].transcript;
           }
         }
 
@@ -57,13 +70,26 @@ class CadenceAdaptiveSpeechService {
       };
 
       this.recognition.onerror = (event) => {
-        if (event.error !== 'no-speech') {
-          console.warn('[SpeechService] Recognition notice:', event.error);
+        console.warn('[SpeechService] Recognition event error:', event.error);
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          this.isListening = false;
+          this.updateStatus('error', 'Microphone permission was denied. Please click the lock or camera/mic icon in your browser address bar to allow microphone access.');
+        } else if (event.error === 'no-speech') {
+          // If no speech heard yet, don't crash
+          this.updateStatus('listening', 'Waiting for you to speak... Tap mic when ready.');
+        } else if (event.error === 'network') {
+          this.isListening = false;
+          this.updateStatus('error', 'Speech service network error. Please check your internet connection or type below.');
+        } else if (event.error === 'audio-capture') {
+          this.isListening = false;
+          this.updateStatus('error', 'No microphone detected on your device. Please plug in or enable a microphone.');
+        } else {
+          this.updateStatus('error', `Speech error: ${event.error}`);
         }
       };
 
       this.recognition.onend = () => {
-        // If user is supposed to be talking, keep listening alive unless explicitly stopped
+        // Only restart if explicitly listening and no fatal error occurred
         if (this.isListening) {
           try {
             this.recognition.start();
@@ -71,8 +97,12 @@ class CadenceAdaptiveSpeechService {
             this.isListening = false;
             this.updateStatus('idle', 'Tap microphone to speak');
           }
+        } else {
+          this.updateStatus('idle', 'Tap microphone to speak');
         }
       };
+    } catch (e) {
+      console.warn('[SpeechService] Could not initialize recognition:', e);
     }
   }
 
@@ -86,7 +116,7 @@ class CadenceAdaptiveSpeechService {
     }
 
     const isIncomplete = this.isThoughtIncomplete(text);
-    const pauseAllowance = isIncomplete ? this.maxPauseWindowMs : 3000;
+    const pauseAllowance = isIncomplete ? this.maxPauseWindowMs : 3200;
 
     if (this.onCadenceFeedback) {
       this.onCadenceFeedback({
@@ -109,8 +139,9 @@ class CadenceAdaptiveSpeechService {
   isThoughtIncomplete(text) {
     const lower = text.toLowerCase().trim();
     const trailingConnectors = [
-      'and', 'or', 'then', 'to', 'how do i', 'where is', 'i want to', 'how to',
-      'ಮತ್ತು', 'ಹೇಗೆ', 'ಮಾಡಬೇಕು', 'ನನಗೆ', 'aur', 'kaise', 'karna', 'kahan'
+      'and', 'or', 'then', 'to', 'how do i', 'where is', 'i want to', 'how to', 'in', 'at', 'with', 'because',
+      'ಮತ್ತು', 'ಹೇಗೆ', 'ಮಾಡಬೇಕು', 'ನನಗೆ', 'ಎಲ್ಲಿ', 'ಯಾವಾಗ',
+      'aur', 'kaise', 'karna', 'kahan', 'kyun', 'lekin', 'ya'
     ];
 
     const words = lower.split(/\s+/);
@@ -130,7 +161,26 @@ class CadenceAdaptiveSpeechService {
     }
   }
 
-  startListening(langCode = 'en') {
+  /**
+   * Proactively request mic permission via getUserMedia first,
+   * ensuring browser dialog appears if not yet granted.
+   */
+  async requestMicPermission() {
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Release immediate audio stream; Web Speech API handles its own
+        stream.getTracks().forEach(t => t.stop());
+        return true;
+      } catch (err) {
+        console.warn("Microphone permission check error:", err);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  async startListening(langCode = 'en') {
     this.currentTranscript = '';
     const langMap = {
       en: 'en-IN',
@@ -139,20 +189,42 @@ class CadenceAdaptiveSpeechService {
     };
     this.lang = langMap[langCode] || 'en-IN';
 
+    if (!this.isSupported()) {
+      this.updateStatus('error', 'Speech recognition is not supported in this browser. Please use Chrome or Edge, or type your question below.');
+      return false;
+    }
+
+    // Proactively verify permission
+    const hasMic = await this.requestMicPermission();
+    if (!hasMic) {
+      this.updateStatus('error', 'Microphone access was denied. Please allow microphone permissions in your browser address bar.');
+      return false;
+    }
+
+    if (!this.recognition) {
+      this.initSpeechRecognition();
+    }
+
     if (this.recognition) {
       this.recognition.lang = this.lang;
       try {
-        this.recognition.start();
         this.isListening = true;
+        this.recognition.start();
+        return true;
       } catch (err) {
-        // Recognition already started
+        // Recognition might already be running
+        console.warn("Recognition start info:", err.message);
+        return true;
       }
-    } else {
-      this.updateStatus('error', 'Speech recognition not supported on this device');
     }
+
+    return false;
   }
 
   stopListening() {
+    const hadTranscript = Boolean(this.currentTranscript);
+    const lastText = this.currentTranscript;
+
     this.isListening = false;
     if (this.adaptiveTimeout) {
       clearTimeout(this.adaptiveTimeout);
@@ -162,6 +234,13 @@ class CadenceAdaptiveSpeechService {
         this.recognition.stop();
       } catch (e) {}
     }
+
+    // If user clicked stop with an active transcript, commit it now
+    if (hadTranscript && this.onResultCallback) {
+      this.currentTranscript = '';
+      this.onResultCallback(lastText, true);
+    }
+
     this.updateStatus('idle', 'Tap to speak');
   }
 
@@ -176,43 +255,53 @@ class CadenceAdaptiveSpeechService {
    * Plays with gentle pace and natural pauses
    */
   speak(text, langCode = 'en', onDone = null) {
-    if (!('speechSynthesis' in window)) {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       if (onDone) onDone();
       return;
     }
 
-    window.speechSynthesis.cancel(); // cancel any active speech
+    try {
+      window.speechSynthesis.cancel(); // cancel any active speech
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    const langMap = {
-      en: 'en-IN',
-      kn: 'kn-IN',
-      hi: 'hi-IN'
-    };
-    utterance.lang = langMap[langCode] || 'en-IN';
-    utterance.rate = this.speechRate; // Calmed, slower speed (0.8x)
-    utterance.pitch = 1.0;
+      const utterance = new SpeechSynthesisUtterance(text);
+      const langMap = {
+        en: 'en-IN',
+        kn: 'kn-IN',
+        hi: 'hi-IN'
+      };
+      utterance.lang = langMap[langCode] || 'en-IN';
+      utterance.rate = this.speechRate; // Calmed, slower speed (0.82x)
+      utterance.pitch = 1.0;
 
-    // Try finding a matching native voice
-    const voices = window.speechSynthesis.getVoices();
-    const matchedVoice = voices.find(v => v.lang.startsWith(utterance.lang) || v.lang.startsWith(langCode));
-    if (matchedVoice) {
-      utterance.voice = matchedVoice;
+      // Try finding a matching native voice
+      const voices = window.speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        const matchedVoice = voices.find(v => 
+          v.lang.startsWith(utterance.lang) || 
+          v.lang.startsWith(langCode)
+        );
+        if (matchedVoice) {
+          utterance.voice = matchedVoice;
+        }
+      }
+
+      utterance.onend = () => {
+        if (onDone) onDone();
+      };
+
+      utterance.onerror = () => {
+        if (onDone) onDone();
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn("TTS error:", e);
+      if (onDone) onDone();
     }
-
-    utterance.onend = () => {
-      if (onDone) onDone();
-    };
-
-    utterance.onerror = () => {
-      if (onDone) onDone();
-    };
-
-    window.speechSynthesis.speak(utterance);
   }
 
   stopSpeaking() {
-    if ('speechSynthesis' in window) {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
   }
