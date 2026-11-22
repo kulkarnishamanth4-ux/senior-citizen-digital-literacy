@@ -1,0 +1,23 @@
+{
+  "name": "senior-citizen-digital-literacy",
+  "version": "1.0.0",
+  "description": "AI-Powered Smartphone & Digital Literacy Assistant for Senior Citizens (Sahayak AI)",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix client run dev",
+    "build": "npm --prefix client run build",
+    "preview": "npm --prefix client run preview",
+    "server": "uvicorn server.main:app --reload --port 8000"
+  },
+  "keywords": [
+    "digital-literacy",
+    "senior-citizens",
+    "accessibility",
+    "scam-prevention",
+    "conversational-ai",
+    "bmsitm",
+    "vtu-societal-project"
+  ],
+  "author": "Shamanth Kulkarni",
+  "license": "MIT"
+}
