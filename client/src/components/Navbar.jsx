@@ -4,13 +4,13 @@ import {
   Volume2, 
   Type, 
   Sun, 
-  Moon, 
   Users, 
   BookOpen, 
   Search, 
   Award,
   Radio
 } from 'lucide-react';
+import { APP_CONFIG } from '../config/appConfig';
 
 export default function Navbar({
   language,
@@ -23,11 +23,8 @@ export default function Navbar({
   setActiveTab,
   unreadAlertCount
 }) {
-  const titles = {
-    en: { brand: 'Sahayak AI', sub: 'Elder Digital Literacy & Scam Guardian' },
-    kn: { brand: 'ಸಹಾಯಕ್ AI', sub: 'ಹಿರಿಯ ನಾಗರಿಕರ ಡಿಜಿಟಲ್ ರಕ್ಷಕ' },
-    hi: { brand: 'सहायक AI', sub: 'वरिष्ठ नागरिक डिजिटल सुरक्षा साथी' }
-  };
+  const brandTitle = APP_CONFIG.brandName[language] || APP_CONFIG.brandName.en;
+  const subTitle = APP_CONFIG.subtitle[language] || APP_CONFIG.subtitle.en;
 
   const navItems = [
     { id: 'guides', label: { en: '20 Digital Guides', kn: 'ಮಾರ್ಗದರ್ಶಿಗಳು', hi: 'डिजिटल गाइड' }, icon: BookOpen },
@@ -46,12 +43,12 @@ export default function Navbar({
           {/* Logo & Branding */}
           <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('guides')}>
             <div className="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-2xl shadow-md">
-              स
+              {APP_CONFIG.logoInitial}
             </div>
             <div>
               <div className="flex items-center space-x-2">
                 <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-                  {titles[language]?.brand || 'Sahayak AI'}
+                  {brandTitle}
                 </h1>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300">
                   <ShieldCheck className="w-3.5 h-3.5 mr-1 text-emerald-600 dark:text-emerald-400" />
@@ -59,7 +56,7 @@ export default function Navbar({
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                {titles[language]?.sub}
+                {subTitle}
               </p>
             </div>
           </div>

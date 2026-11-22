@@ -117,7 +117,7 @@ export default function CaregiverDashboard({
           <div className="p-8 text-center text-slate-500 dark:text-slate-400">
             <CheckCircle className="w-12 h-12 mx-auto text-emerald-500 mb-2" />
             <p className="font-bold text-base">No active security threats or coercion events detected.</p>
-            <p className="text-xs text-slate-400">When Sahayak intercepts a suspicious call or masks an OTP, details appear here instantly.</p>
+            <p className="text-xs text-slate-400">When the guardian intercepts a suspicious call or masks an OTP, details appear here instantly.</p>
           </div>
         ) : (
           <div className="space-y-3">

@@ -24,6 +24,7 @@ import CaregiverDashboard from './components/CaregiverDashboard';
 import { TASK_GUIDES } from './data/guides';
 import { guardianService } from './services/guardianService';
 import { speechService } from './services/speechService';
+import { APP_CONFIG } from './config/appConfig';
 
 export default function App() {
   const [language, setLanguage] = useState('en'); // 'en' | 'kn' | 'hi'
@@ -34,10 +35,12 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [isVoiceOpen, setIsVoiceOpen] = useState(false);
 
-  // Persistence State
+  const prefix = APP_CONFIG.storagePrefix;
+
+  // Persistence State using configurable prefix
   const [completedGuides, setCompletedGuides] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('sahayak_completed_guides')) || [];
+      return JSON.parse(localStorage.getItem(`${prefix}completed_guides`)) || [];
     } catch {
       return [];
     }
@@ -45,7 +48,7 @@ export default function App() {
 
   const [earnedBadges, setEarnedBadges] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('sahayak_earned_badges')) || [];
+      return JSON.parse(localStorage.getItem(`${prefix}earned_badges`)) || [];
     } catch {
       return [];
     }
@@ -53,7 +56,7 @@ export default function App() {
 
   const [evaluationData, setEvaluationData] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('sahayak_evaluation_data')) || null;
+      return JSON.parse(localStorage.getItem(`${prefix}evaluation_data`)) || null;
     } catch {
       return null;
     }
@@ -70,7 +73,7 @@ export default function App() {
     if (!completedGuides.includes(guideId)) {
       const updated = [...completedGuides, guideId];
       setCompletedGuides(updated);
-      localStorage.setItem('sahayak_completed_guides', JSON.stringify(updated));
+      localStorage.setItem(`${prefix}completed_guides`, JSON.stringify(updated));
     }
     setActiveGuide(null);
   };
@@ -79,13 +82,13 @@ export default function App() {
     if (!earnedBadges.includes(badgeId)) {
       const updated = [...earnedBadges, badgeId];
       setEarnedBadges(updated);
-      localStorage.setItem('sahayak_earned_badges', JSON.stringify(updated));
+      localStorage.setItem(`${prefix}earned_badges`, JSON.stringify(updated));
     }
   };
 
   const handleSaveEvaluation = (data) => {
     setEvaluationData(data);
-    localStorage.setItem('sahayak_evaluation_data', JSON.stringify(data));
+    localStorage.setItem(`${prefix}evaluation_data`, JSON.stringify(data));
   };
 
   const categories = ['All', 'Communication', 'Digital Payments', 'Smartphone Settings', 'Healthcare & Civic'];
@@ -93,6 +96,8 @@ export default function App() {
   const filteredGuides = selectedCategory === 'All'
     ? TASK_GUIDES
     : TASK_GUIDES.filter(g => g.category === selectedCategory);
+
+  const brandHeading = APP_CONFIG.brandName[language] || APP_CONFIG.brandName.en;
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
@@ -130,10 +135,10 @@ export default function App() {
                 <div className="bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-3xl p-6 sm:p-10 text-slate-950 shadow-xl mb-8 relative overflow-hidden">
                   <div className="max-w-2xl">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-slate-950 text-amber-300 uppercase tracking-wider mb-3">
-                      BMSIT&M Societal Project (1BSOP308)
+                      {APP_CONFIG.academic.institution} • {APP_CONFIG.academic.courseCode}
                     </span>
                     <h2 className="text-3xl sm:text-5xl font-black tracking-tight mb-3">
-                      {language === 'kn' ? "ಡಿಜಿಟಲ್ ಸಹಾಯಕ್" : language === 'hi' ? "डिजिटल सहायक" : "Digital Literacy Guides"}
+                      {brandHeading}
                     </h2>
                     <p className="text-base sm:text-xl font-bold opacity-90 mb-6">
                       {language === 'kn'

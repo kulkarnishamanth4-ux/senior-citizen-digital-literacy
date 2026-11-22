@@ -1,9 +1,11 @@
-# Sahayak AI (ಸಹಾಯಕ್ / सहायक)
-### AI-Powered Smartphone & Digital Literacy Assistant for Senior Citizens
+# AI-Powered Smartphone & Digital Literacy Assistant for Senior Citizens
+### Dual-Stream Guardian & Cadence-Adaptive Ambient Scaffolding Engine
 **BMS INSTITUTE OF TECHNOLOGY AND MANAGEMENT (BMSIT&M)**  
 *Department of Computer Science and Engineering*  
 **III Semester – Societal Project (1BSOP308) | 2025 Scheme | Academic Year 2026–27**  
 **Repository:** [https://github.com/kulkarnishamanth4-ux/senior-citizen-digital-literacy](https://github.com/kulkarnishamanth4-ux/senior-citizen-digital-literacy)
+
+> **💡 Configurable Branding:** The app name and branding are not hard-coded. You can customize the name, tagline, and regional labels in one centralized file: [`client/src/config/appConfig.js`](file:///c:/Users/girig/OneDrive/Desktop/Societal%20Project/client/src/config/appConfig.js) or pass `VITE_APP_NAME` in your deployment environment variables.
 
 ---
 
@@ -11,17 +13,17 @@
 
 India is home to more than **138 million citizens aged 60 and above**, a population projected to double by 2050. While mandatory digital services—such as UPI payments, DigiLocker, electricity bills, and telemedicine—have surged, most seniors face a steep digital divide and remain vulnerable to sophisticated cyber frauds (fake KYC APKs, electricity disconnection threats, lottery collect traps, and coercive vishing calls).
 
-**Sahayak AI** is not a passive chatbot. It is a **dual-sided ambient guardian and adaptive scaffolding engine** specifically architected to empower older adults with digital independence, restore privacy, and provide active real-time protection against financial exploitation.
+This system is not a passive chatbot. It is a **dual-sided ambient guardian and adaptive scaffolding engine** specifically architected to empower older adults with digital independence, restore privacy, and provide active real-time protection against financial exploitation.
 
 ---
 
-## 🚀 Breakthrough Innovations (What Makes Sahayak Unique)
+## 🚀 Breakthrough Innovations (What Makes This System Unique)
 
-Unlike commercial voice assistants (Siri, Alexa, Google Assistant) that are built for digitally native users and cut off speech prematurely, **Sahayak AI** introduces core architectural innovations:
+Unlike commercial voice assistants (Siri, Alexa, Google Assistant) that are built for digitally native users and cut off speech prematurely, this system introduces core architectural innovations:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                           SAHAYAK AI ARCHITECTURE                               │
+│                           SYSTEM ARCHITECTURE                                   │
 ├─────────────────────────────────────────────────────────────────────────────────┤
 │ 1. Cadence-Adaptive Infinite-Pause VAD: Adapts to word retrieval hesitations   │
 │ 2. Dual-Stream Call & Screen Guardian: Cross-correlates calls & screen state    │

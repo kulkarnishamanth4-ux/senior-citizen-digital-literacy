@@ -5,8 +5,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+app_title = os.getenv("APP_NAME", "AI-Powered Senior Digital Literacy & Scam Guardian")
+
 app = FastAPI(
-    title="Sahayak AI - Dual-Stream Guardian & Scam Verification Engine",
+    title=app_title,
     description="Backend API for AI-Powered Smartphone & Digital Literacy Assistant for Senior Citizens (BMSIT&M 1BSOP308)",
     version="1.0.0"
 )
@@ -53,7 +55,7 @@ caregiver_alerts_db = []
 def health_check():
     return {
         "status": "healthy",
-        "service": "Sahayak AI Guardian Engine",
+        "service": f"{app_title} Engine",
         "version": "1.0.0"
     }
 

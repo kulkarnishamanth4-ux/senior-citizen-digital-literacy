@@ -73,7 +73,7 @@ export default function PrePostTest({ language, onSaveEvaluation }) {
                 </span>
               </div>
               <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
-                Syllabus Verification Metric: Empirically measures scam-identification capability before and after using Sahayak AI.
+                Syllabus Verification Metric: Empirically measures scam-identification capability before and after using the Assistant.
               </p>
             </div>
           </div>
@@ -99,7 +99,7 @@ export default function PrePostTest({ language, onSaveEvaluation }) {
                 : 'text-slate-600 dark:text-slate-300'
             }`}
           >
-            Phase 2: Post-Test (After Sahayak Training)
+            Phase 2: Post-Test (After Guided Training)
           </button>
           <button
             onClick={() => setActiveStage('results')}
@@ -168,7 +168,7 @@ export default function PrePostTest({ language, onSaveEvaluation }) {
       {activeStage === 'post' && (
         <div className="space-y-6">
           <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 text-emerald-900 dark:text-emerald-200 text-sm font-medium">
-            <strong>Post-Test Instructions:</strong> After using the Sahayak guides and Digital Vaccine simulations, answer these fresh scenarios to measure your reflex improvement!
+            <strong>Post-Test Instructions:</strong> After using the step-by-step guides and Digital Vaccine simulations, answer these fresh scenarios to measure your reflex improvement!
           </div>
 
           {POST_TEST_QUESTIONS.map((q, qIndex) => (

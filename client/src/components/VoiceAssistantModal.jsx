@@ -223,7 +223,7 @@ export default function VoiceAssistantModal({
             <div className="mt-3 p-3 bg-emerald-50 dark:bg-emerald-950/60 rounded-xl border border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 text-left">
               <div className="flex items-center space-x-1.5 text-xs font-bold uppercase tracking-wider mb-1 text-emerald-700 dark:text-emerald-400">
                 <Volume2 className="w-3.5 h-3.5" />
-                <span>Sahayak Spoken Response</span>
+                <span>Assistant Spoken Response</span>
               </div>
               <p className="text-base font-medium">{assistantReply}</p>
             </div>
