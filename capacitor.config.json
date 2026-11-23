@@ -3,6 +3,7 @@
   "appName": "ElderAssist",
   "webDir": "client/dist",
   "server": {
-    "androidScheme": "https"
+    "androidScheme": "https",
+    "cleartext": true
   }
 }
