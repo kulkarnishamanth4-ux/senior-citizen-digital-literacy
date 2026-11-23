@@ -59,5 +59,13 @@ export const APP_CONFIG = {
   },
 
   // Storage key prefix
-  storagePrefix: "senior_literacy_"
+  storagePrefix: "senior_literacy_",
+
+  // Android APK Download Links
+  apkDownload: {
+    directUrl: "https://github.com/kulkarnishamanth4-ux/senior-citizen-digital-literacy/releases/latest/download/ElderAssist.apk",
+    releasesUrl: "https://github.com/kulkarnishamanth4-ux/senior-citizen-digital-literacy/releases",
+    version: "v1.0.0",
+    fileName: "ElderAssist.apk"
+  }
 };

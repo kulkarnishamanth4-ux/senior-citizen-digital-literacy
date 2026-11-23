@@ -9,7 +9,8 @@ import {
   BookOpen, 
   Search, 
   Award,
-  Radio
+  Radio,
+  Download
 } from 'lucide-react';
 import { APP_CONFIG } from '../config/appConfig';
 
@@ -152,6 +153,18 @@ export default function Navbar({
             >
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
+
+            {/* Direct APK Download Link */}
+            <a
+              href={APP_CONFIG.apkDownload.directUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black hover:opacity-90 font-bold text-xs shadow-xs transition-all border border-transparent"
+              title="Download Android APK"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>{language === 'kn' ? 'ಆ್ಯಪ್ ಡೌನ್‌ಲೋಡ್' : language === 'hi' ? 'ऐप डाउनलोड' : 'Download App (APK)'}</span>
+            </a>
           </div>
         </div>
 
