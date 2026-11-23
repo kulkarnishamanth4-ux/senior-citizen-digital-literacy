@@ -30,14 +30,14 @@ export default function VoiceAssistantModal({
 
   const localizedPrompts = {
     en: {
-      title: "Voice Companion",
-      sub: "Ask anything about using your smartphone or digital security.",
-      speakBtn: "Tap & Speak (English / Kannada / Hindi)",
-      stopBtn: "Tap when done speaking",
-      listening: "Listening carefully... Take your time, Amma.",
-      recordingFallback: "Recording your voice... Tap the red button when finished.",
-      waiting: "Holding open... Thinking or taking a breath? I'm waiting.",
-      placeholder: "Ask anything, e.g. 'How to open WhatsApp'...",
+      title: "Voice Help",
+      sub: "Ask anything about using your phone in simple words.",
+      speakBtn: "Tap to Speak",
+      stopBtn: "Tap to Finish",
+      listening: "Listening... Take your time.",
+      recordingFallback: "Listening... Tap the red button when done.",
+      waiting: "Still listening... Take your time.",
+      placeholder: "Ask a question, e.g. 'How to open WhatsApp'...",
       send: "Ask",
       tryAsking: "Try asking:",
       suggestions: [
@@ -48,18 +48,18 @@ export default function VoiceAssistantModal({
         "How to make screen text larger?",
         "How to turn on flashlight?"
       ],
-      relatedGuides: "Related practice lessons:",
-      openLesson: "Open Lesson",
+      relatedGuides: "Helpful guides:",
+      openLesson: "Open Guide",
       close: "Close"
     },
     kn: {
-      title: "ಧ್ವನಿ ಮಿತ್ರ",
-      sub: "ಸ್ಮಾರ್ಟ್‌ಫೋನ್ ಬಳಕೆ ಅಥವಾ ಡಿಜಿಟಲ್ ಸುರಕ್ಷತೆಯ ಬಗ್ಗೆ ಯಾವುದೇ ಪ್ರಶ್ನೆ ಕೇಳಿ.",
-      speakBtn: "ಮಾತನಾಡಲು ಮೈಕ್ ಒತ್ತಿರಿ (ಕನ್ನಡ)",
-      stopBtn: "ಮಾತನಾಡಿ ಮುಗಿದ ಮೇಲೆ ಕೆಂಪು ಬಟನ್ ಒತ್ತಿರಿ",
-      listening: "ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದ್ದೇನೆ... ನಿಧಾನವಾಗಿ ಮಾತನಾಡಿ ಅಮ್ಮಾ.",
-      recordingFallback: "ಧ್ವನಿ ರೆಕಾರ್ಡ್ ಆಗುತ್ತಿದೆ... ಮುಗಿದ ಮೇಲೆ ಕೆಂಪು ಬಟನ್ ಒತ್ತಿರಿ.",
-      waiting: "ಯೋಚಿಸುತ್ತಿದ್ದೀರಾ? ನಾನು ಕಾಯುತ್ತಿದ್ದೇನೆ, ಆತಂಕ ಬೇಡ.",
+      title: "ಧ್ವನಿ ಸಹಾಯ",
+      sub: "ನಿಮ್ಮ ಫೋನ್ ಬಗ್ಗೆ ಯಾವುದೇ ಪ್ರಶ್ನೆ ಕೇಳಿ.",
+      speakBtn: "ಮಾತನಾಡಲು ಒತ್ತಿರಿ",
+      stopBtn: "ಮುಗಿಸಲು ಒತ್ತಿರಿ",
+      listening: "ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದ್ದೇನೆ... ನಿಧಾನವಾಗಿ ಹೇಳಿ.",
+      recordingFallback: "ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದ್ದೇನೆ... ಮುಗಿದ ಮೇಲೆ ಕೆಂಪು ಬಟನ್ ಒತ್ತಿರಿ.",
+      waiting: "ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದ್ದೇನೆ... ನಿಧಾನವಾಗಿ ಮಾತನಾಡಿ.",
       placeholder: "ಇಲ್ಲಿ ಕೇಳಿ, ಉದಾಹರಣೆಗೆ: 'ವಾಟ್ಸಾಪ್ ತೆರೆಯುವುದು ಹೇಗೆ?'...",
       send: "ಕೇಳಿ",
       tryAsking: "ಹೀಗೆ ಕೇಳಿ ನೋಡಿ:",
@@ -71,18 +71,18 @@ export default function VoiceAssistantModal({
         "ಅಕ್ಷರಗಳನ್ನು ದೊಡ್ಡದಾಗಿಸುವುದು ಹೇಗೆ?",
         "ಟಾರ್ಚ್ ಆನ್ ಮಾಡುವುದು ಹೇಗೆ?"
       ],
-      relatedGuides: "ಸಂಬಂಧಿತ ಪಾಠಗಳು:",
-      openLesson: "ಪಾಠ ತೆರೆಯಿರಿ",
+      relatedGuides: "ಸಂಬಂಧಿತ ಮಾರ್ಗದರ್ಶಿಗಳು:",
+      openLesson: "ಮಾರ್ಗದರ್ಶಿ ತೆರೆಯಿರಿ",
       close: "ಮುಚ್ಚಿ"
     },
     hi: {
-      title: "वॉयस साथी",
-      sub: "स्मार्टफोन चलाने या डिजिटल सुरक्षा से जुड़ा कोई भी प्रश्न पूछें।",
-      speakBtn: "माइक दबाकर बोलें (हिन्दी)",
-      stopBtn: "बोलने के बाद लाल बटन दबाएं",
-      listening: "सुन रहा हूँ... आराम से बोलिए माताजी।",
-      recordingFallback: "आवाज़ रिकॉर्ड हो रही है... बोलने के बाद लाल बटन दबाएं।",
-      waiting: "सांस ले रहे हैं या सोच रहे हैं? मैं धैर्य से सुन रहा हूँ।",
+      title: "बोलकर पूछें",
+      sub: "अपने फोन के बारे में कोई भी सवाल पूछें।",
+      speakBtn: "बोलने के लिए दबाएं",
+      stopBtn: "पूरा होने पर दबाएं",
+      listening: "सुन रहा हूँ... आराम से बोलिए।",
+      recordingFallback: "सुन रहा हूँ... बोलने के बाद लाल बटन दबाएं।",
+      waiting: "सुन रहा हूँ... आराम से बोलिए।",
       placeholder: "यहाँ पूछें, जैसे: 'व्हाट्सएप कैसे खोलें?'...",
       send: "पूछें",
       tryAsking: "ऐसे पूछ सकते हैं:",
@@ -94,8 +94,8 @@ export default function VoiceAssistantModal({
         "स्क्रीन के अक्षरों को बड़ा कैसे करें?",
         "टॉर्च कैसे जलाएं?"
       ],
-      relatedGuides: "संबंधित अभ्यास पाठ:",
-      openLesson: "पाठ खोलें",
+      relatedGuides: "मददगार गाइड:",
+      openLesson: "गाइड खोलें",
       close: "बंद करें"
     }
   };
@@ -467,7 +467,7 @@ export default function VoiceAssistantModal({
                 ? text.recordingFallback
                 : isListening
                 ? (isExtendedPauseActive ? text.waiting : text.listening)
-                : "Continuous cadence listening"}
+                : (language === 'kn' ? "ನಿಧಾನವಾಗಿ ಮಾತನಾಡಿ, ನಾನು ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತೇನೆ" : language === 'hi' ? "आराम से बोलें, हम सुन रहे हैं" : "Speak at your own pace")}
             </span>
           </p>
         </div>

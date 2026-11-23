@@ -36,9 +36,9 @@ export const APP_CONFIG = {
 
   // Multilingual Subtitles / Taglines
   subtitle: {
-    en: "AI-Powered Smartphone & Digital Literacy Assistant for Senior Citizens",
-    kn: "ಹಿರಿಯ ನಾಗರಿಕರ ಸ್ಮಾರ್ಟ್‌ಫೋನ್ & ಡಿಜಿಟಲ್ ಸಾಕ್ಷರತಾ ರಕ್ಷಕ",
-    hi: "वरिष्ठ नागरिकों के लिए डिजिटल साक्षरता एवं सुरक्षा सहायक"
+    en: "Simple & Safe Smartphone Helper for Seniors",
+    kn: "ಹಿರಿಯರಿಗೆ ಸುಲಭ ಮತ್ತು ಸುರಕ್ಷಿತ ಸ್ಮಾರ್ಟ್‌ಫೋನ್ ಸಹಾಯಕ",
+    hi: "बुजुर्गों के लिए आसान और सुरक्षित स्मार्टफोन साथी"
   },
 
   // Academic Metadata (BMSIT&M)

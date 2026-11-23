@@ -121,10 +121,14 @@ export default function ScamDetector({ language, onAlertCaregiver }) {
           </div>
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
-              Message & Scam Verifier
+              {language === 'kn' ? 'ಸಂದೇಶ ಪರೀಕ್ಷಿಸಿ' : language === 'hi' ? 'मैसेज जांचें' : 'Check Any Message'}
             </h2>
             <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-normal">
-              Paste or type any suspicious SMS, WhatsApp message, or caller claim for an objective safety evaluation.
+              {language === 'kn'
+                ? "ನಿಮಗೆ ಬಂದ ಸಂದೇಶ ಅಥವಾ ಕರೆ ನಕಲಿಯೇ ಎಂದು ತಿಳಿಯಲು ಇಲ್ಲಿ ಪರೀಕ್ಷಿಸಿ."
+                : language === 'hi'
+                ? "कोई भी संदिग्ध मैसेज या कॉल सही है या फर्जी, यह देखने के लिए यहाँ जांचें।"
+                : "Paste any SMS or WhatsApp message here to check if it is safe or a scam."}
             </p>
           </div>
         </div>
@@ -135,7 +139,7 @@ export default function ScamDetector({ language, onAlertCaregiver }) {
             rows={4}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Paste message here (e.g., 'Electricity power will be disconnected tonight, call 98xxx')..."
+            placeholder={language === 'kn' ? "ಸಂದೇಶವನ್ನು ಇಲ್ಲಿ ಹಾಕಿ (ಉದಾ: ಕರೆಂಟ್ ಬಿಲ್ ಕಟ್ಟಿಲ್ಲ, ತಕ್ಷಣ ಕರೆ ಮಾಡಿ)..." : language === 'hi' ? "मैसेज यहाँ डालें (जैसे: बिजली कट जाएगी, तुरंत कॉल करें)..." : "Paste message here (e.g. 'Electricity power will be cut tonight, call 98xxx')..."}
             className="w-full p-4 rounded-2xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white font-medium text-sm sm:text-base focus:outline-none focus:border-black dark:focus:border-white transition-colors"
           />
 
@@ -144,7 +148,7 @@ export default function ScamDetector({ language, onAlertCaregiver }) {
               onClick={() => setInputText('')}
               className="px-3 py-1.5 text-xs font-semibold text-zinc-500 hover:text-black dark:hover:text-white flex items-center"
             >
-              <Trash2 className="w-3.5 h-3.5 mr-1" /> Clear Text
+              <Trash2 className="w-3.5 h-3.5 mr-1" /> {language === 'kn' ? 'ಅಳಿಸಿ' : language === 'hi' ? 'हटाएं' : 'Clear Text'}
             </button>
 
             <button
@@ -157,7 +161,9 @@ export default function ScamDetector({ language, onAlertCaregiver }) {
               }`}
             >
               <Sparkles className="w-4 h-4" />
-              <span>{isAnalyzing ? "Analyzing..." : "Verify Message"}</span>
+              <span>{isAnalyzing 
+                ? (language === 'kn' ? "ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ..." : language === 'hi' ? "जांच हो रही है..." : "Checking...") 
+                : (language === 'kn' ? "ಸಂದೇಶ ಪರೀಕ್ಷಿಸಿ" : language === 'hi' ? "मैसेज जांचें" : "Check Message")}</span>
             </button>
           </div>
         </div>
@@ -165,7 +171,7 @@ export default function ScamDetector({ language, onAlertCaregiver }) {
         {/* Preset Sample Scams */}
         <div className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-800">
           <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-2.5">
-            Test with common Indian scenarios:
+            {language === 'kn' ? 'ಉದಾಹರಣೆ ಸಂದೇಶಗಳನ್ನು ಪರೀಕ್ಷಿಸಿ:' : language === 'hi' ? 'उदाहरण मैसेज जांचें:' : 'Or tap an example to test:'}
           </p>
           <div className="flex flex-wrap gap-2">
             {presets.map((preset, idx) => (

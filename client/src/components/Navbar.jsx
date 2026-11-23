@@ -37,12 +37,12 @@ export default function Navbar({
   };
 
   const navItems = [
-    { id: 'guides', label: { en: '20 Guides', kn: 'ಮಾರ್ಗದರ್ಶಿಗಳು', hi: '20 गाइड' }, icon: BookOpen },
-    { id: 'scam-check', label: { en: 'Scam Verifier', kn: 'ವಂಚನೆ ಪರೀಕ್ಷಕ', hi: 'स्कैम जांच' }, icon: Search },
-    { id: 'vaccine', label: { en: 'Safety Sandbox', kn: 'ಅಭ್ಯಾಸ ಪೋರ್ಟಲ್', hi: 'सुरक्षा अभ्यास' }, icon: Award },
-    { id: 'guardian-sim', label: { en: 'Guardian Shield', kn: 'ಲೈವ್ ಗಾರ್ಡಿಯನ್', hi: 'गार्डियन शील्ड' }, icon: Radio },
-    { id: 'evaluation', label: { en: 'Pre / Post Test', kn: 'ಮೌಲ್ಯಮಾಪನ', hi: 'प्रगति जांच' }, icon: ShieldCheck },
-    { id: 'caregiver', label: { en: 'Family Portal', kn: 'ಕುಟುಂಬ ಪೋರ್ಟಲ್', hi: 'परिवार पोर्टल' }, icon: Users, badge: unreadAlertCount }
+    { id: 'guides', label: { en: 'Guides', kn: 'ಮಾರ್ಗದರ್ಶಿಗಳು', hi: 'गाइड' }, icon: BookOpen },
+    { id: 'scam-check', label: { en: 'Check Message', kn: 'ಸಂದೇಶ ಪರಿಶೀಲನೆ', hi: 'मैसेज जांचें' }, icon: Search },
+    { id: 'vaccine', label: { en: 'Practice Safety', kn: 'ಸುರಕ್ಷತಾ ಅಭ್ಯಾಸ', hi: 'सुरक्षा सीखें' }, icon: Award },
+    { id: 'guardian-sim', label: { en: 'Call Safety Helper', kn: 'ಕರೆ ರಕ್ಷಣೆ', hi: 'कॉल सुरक्षा' }, icon: Radio },
+    { id: 'evaluation', label: { en: 'Practice Questions', kn: 'ಪ್ರಶ್ನೋತ್ತರ', hi: 'अभ्यास प्रश्न' }, icon: ShieldCheck },
+    { id: 'caregiver', label: { en: 'Family Alerts', kn: 'ಕುಟುಂಬದವರಿಗೆ ಮಾಹಿತಿ', hi: 'परिवार अलर्ट' }, icon: Users, badge: unreadAlertCount }
   ];
 
   return (

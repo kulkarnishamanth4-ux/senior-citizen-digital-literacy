@@ -35,14 +35,14 @@ export default function CaregiverDashboard({
             <div>
               <div className="flex items-center space-x-2">
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                  Family / Caregiver Portal
+                  Family Alerts & Overview
                 </h2>
                 <span className="px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
-                  Remote Oversight
+                  Family Connected
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-normal">
-                Connected to Senior's Device: Real-time fraud defense alerts, task mastery status, and silent emergency SOS feed.
+                See safety alerts and learning progress for your elderly family member.
               </p>
             </div>
           </div>
@@ -52,16 +52,16 @@ export default function CaregiverDashboard({
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-6">
           <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-              Shield Status
+              Safety Status
             </span>
             <div className="text-base font-bold text-zinc-900 dark:text-white flex items-center mt-1">
-              <ShieldCheck className="w-4 h-4 mr-1 text-emerald-600" /> ACTIVE & SAFE
+              <ShieldCheck className="w-4 h-4 mr-1 text-emerald-600" /> SAFE
             </div>
           </div>
 
           <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-              Guides Mastered
+              Guides Practiced
             </span>
             <div className="text-2xl font-black text-zinc-900 dark:text-white mt-1">
               {completedGuidesCount} / 20
@@ -70,19 +70,19 @@ export default function CaregiverDashboard({
 
           <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-              Sandbox Badges
+              Safety Exercises
             </span>
             <div className="text-2xl font-black text-zinc-900 dark:text-white mt-1">
-              {earnedBadgesCount} Completed
+              {earnedBadgesCount} Practiced
             </div>
           </div>
 
           <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-              Evaluation Score
+              Quiz Score
             </span>
             <div className="text-2xl font-black text-zinc-900 dark:text-white mt-1">
-              {evaluationData ? `${evaluationData.postScore}%` : 'Pending'}
+              {evaluationData ? `${evaluationData.postScore}%` : 'Not yet'}
             </div>
           </div>
         </div>
@@ -94,7 +94,7 @@ export default function CaregiverDashboard({
           <div className="flex items-center space-x-2">
             <Bell className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
             <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
-              Real-Time Scam & Coercion Log
+              Safety Alerts Log
             </h3>
           </div>
           {alerts.length > 0 && (

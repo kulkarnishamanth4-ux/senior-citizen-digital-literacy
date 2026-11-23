@@ -8,7 +8,6 @@ import {
   Sparkles,
   Smartphone
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { SCAM_SIMULATIONS } from '../data/simulations';
 import { speechService } from '../services/speechService';
 
@@ -25,11 +24,6 @@ export default function DigitalVaccineSandbox({ language, onEarnBadge }) {
     setFeedbackState(choice);
 
     if (choice.isCorrect) {
-      confetti({
-        particleCount: 60,
-        spread: 60,
-        origin: { y: 0.7 }
-      });
       setCompletedSims(prev => ({ ...prev, [simulation.id]: true }));
       if (onEarnBadge) onEarnBadge(simulation.id);
     }
@@ -61,21 +55,25 @@ export default function DigitalVaccineSandbox({ language, onEarnBadge }) {
             <div>
               <div className="flex items-center space-x-2">
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                  Safety Training Sandbox
+                  {language === 'kn' ? 'ಸುರಕ್ಷತಾ ಅಭ್ಯಾಸ: ನಕಲಿ ಸಂದೇಶ ಗುರುತಿಸಿ' : language === 'hi' ? 'सुरक्षा सीखें: फर्जी मैसेज पहचानें' : 'Practice Safety: Spot Fake Messages'}
                 </h2>
                 <span className="px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
-                  Risk-Free Training
+                  {language === 'kn' ? 'ಸುರಕ್ಷಿತ ಅಭ್ಯಾಸ' : language === 'hi' ? 'सुरक्षित अभ्यास' : 'Safe to Try'}
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-normal">
-                Hands-on simulation of prevalent digital threats to build natural recognition reflex.
+                {language === 'kn'
+                  ? "ವಂಚನೆಯ ಸಂದೇಶಗಳು ಹೇಗೆ ಬರುತ್ತವೆ ಎಂದು ತಿಳಿದುಕೊಳ್ಳಲು ಈ ಉದಾಹರಣೆಗಳನ್ನು ನೋಡಿ ಅಭ್ಯಾಸ ಮಾಡಿ."
+                  : language === 'hi'
+                  ? "धोखाधड़ी वाले मैसेज कैसे आते हैं, यह समझने के लिए इन सुरक्षित उदाहरणों से अभ्यास करें।"
+                  : "Try these safe examples to practice spotting fake messages and phone scams."}
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-1.5 bg-zinc-100 dark:bg-zinc-800 px-3.5 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 text-xs font-semibold text-zinc-800 dark:text-zinc-200">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>{Object.keys(completedSims).length} / {SCAM_SIMULATIONS.length} Completed</span>
+            <span>{Object.keys(completedSims).length} / {SCAM_SIMULATIONS.length} {language === 'kn' ? 'ಅಭ್ಯಾಸ ಮಾಡಲಾಗಿದೆ' : language === 'hi' ? 'अभ्यास पूरा' : 'Practiced'}</span>
           </div>
         </div>
 

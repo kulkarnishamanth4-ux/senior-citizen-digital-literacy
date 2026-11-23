@@ -5,7 +5,6 @@ import {
   RotateCcw, 
   Award
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { PRE_TEST_QUESTIONS, POST_TEST_QUESTIONS } from '../data/evaluations';
 
 export default function PrePostTest({ language, onSaveEvaluation }) {
@@ -34,11 +33,6 @@ export default function PrePostTest({ language, onSaveEvaluation }) {
 
   const handleFinishPostTest = () => {
     setActiveStage('results');
-    confetti({
-      particleCount: 80,
-      spread: 70,
-      origin: { y: 0.6 }
-    });
 
     if (onSaveEvaluation) {
       onSaveEvaluation({
@@ -62,14 +56,18 @@ export default function PrePostTest({ language, onSaveEvaluation }) {
             <div>
               <div className="flex items-center space-x-2">
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                  Empirical Research Evaluation
+                  {language === 'kn' ? 'ಸ್ಮಾರ್ಟ್‌ಫೋನ್ ಜ್ಞಾನ ಪರೀಕ್ಷೆ' : language === 'hi' ? 'स्मार्टफोन ज्ञान जांच' : 'Practice Questions & Progress'}
                 </h2>
                 <span className="px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
-                  Target: ≥ 30% Improvement
+                  {language === 'kn' ? 'ಸ್ವಯಂ ಪರಿಶೀಲನೆ' : language === 'hi' ? 'खुद जांचें' : 'Self Check'}
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-normal">
-                Syllabus Verification Metric: Empirically measures scam-identification capability before and after using the Assistant.
+                {language === 'kn'
+                  ? "ಫೋನ್ ಸುರಕ್ಷತೆಯ ಬಗ್ಗೆ ನಿಮ್ಮ ಜ್ಞಾನವನ್ನು ಪರೀಕ್ಷಿಸಲು ಈ ಸರಳ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಿ."
+                  : language === 'hi'
+                  ? "फोन सुरक्षा की अपनी समझ देखने के लिए इन आसान सवालों के जवाब दें।"
+                  : "Simple questions to check what you know and learn how to use your phone safely."}
               </p>
             </div>
           </div>
@@ -85,7 +83,7 @@ export default function PrePostTest({ language, onSaveEvaluation }) {
                 : 'text-zinc-600 dark:text-zinc-400'
             }`}
           >
-            Phase 1: Pre-Test (Baseline)
+            {language === 'kn' ? '1. ಪ್ರಾರಂಭದ ಪ್ರಶ್ನೆಗಳು' : language === 'hi' ? '1. शुरुआती सवाल' : '1. Before Practice'}
           </button>
           <button
             onClick={() => setActiveStage('post')}
@@ -95,7 +93,7 @@ export default function PrePostTest({ language, onSaveEvaluation }) {
                 : 'text-zinc-600 dark:text-zinc-400'
             }`}
           >
-            Phase 2: Post-Test (After Guided Training)
+            {language === 'kn' ? '2. ನಂತರದ ಪ್ರಶ್ನೆಗಳು' : language === 'hi' ? '2. सीखने के बाद' : '2. After Practice'}
           </button>
           <button
             onClick={() => setActiveStage('results')}
@@ -105,7 +103,7 @@ export default function PrePostTest({ language, onSaveEvaluation }) {
                 : 'text-zinc-600 dark:text-zinc-400'
             }`}
           >
-            Phase 3: Statistical Results
+            {language === 'kn' ? '3. ನಿಮ್ಮ ಫಲಿತಾಂಶ' : language === 'hi' ? '3. आपका नतीजा' : '3. Your Progress'}
           </button>
         </div>
       </div>

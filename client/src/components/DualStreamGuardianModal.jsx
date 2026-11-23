@@ -84,10 +84,14 @@ export default function DualStreamGuardianModal({ language }) {
             </div>
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                Dual-Stream Call & Screen Guardian
+                {language === 'kn' ? 'ಕರೆ ಸುರಕ್ಷತಾ ಸಹಾಯಕ' : language === 'hi' ? 'कॉल सुरक्षा सहायक' : 'Call Safety Helper'}
               </h2>
               <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-normal">
-                Active Coercion Interception: Cross-references live call coercion with real-time screen events to stop scams mid-flight.
+                {language === 'kn'
+                  ? "ಫೋನ್ ಕರೆಯಲ್ಲಿ ಯಾರಾದರೂ ಒಟಿಪಿ ಕೇಳಿದರೆ ನಿಮ್ಮನ್ನು ಎಚ್ಚರಿಸಿ ರಕ್ಷಿಸುತ್ತದೆ."
+                  : language === 'hi'
+                  ? "फोन कॉल पर कोई ओटीपी या पैसे मांगे तो यह तुरंत आपको सचेत करता है।"
+                  : "Checks if a caller is trying to steal your OTP or bank details, and automatically hides sensitive information."}
               </p>
             </div>
           </div>
@@ -97,7 +101,7 @@ export default function DualStreamGuardianModal({ language }) {
             className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black font-semibold text-xs hover:opacity-90 transition-all"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            <span>Re-evaluate Matrix</span>
+            <span>{language === 'kn' ? 'ಮತ್ತೆ ಪರಿಶೀಲಿಸಿ' : language === 'hi' ? 'दोबारा जांचें' : 'Check Again'}</span>
           </button>
         </div>
 
@@ -105,12 +109,12 @@ export default function DualStreamGuardianModal({ language }) {
         <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700">
           <div className="flex justify-between items-center mb-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
-              Cross-Modal Threat Multiplier
+              {language === 'kn' ? 'ಅಪಾಯದ ಮಟ್ಟ' : language === 'hi' ? 'खतरे का स्तर' : 'Risk Level'}
             </span>
             <span className={`text-sm font-bold ${
               (evalResult?.threatScore || 0) >= 70 ? 'text-red-600' : 'text-zinc-700 dark:text-zinc-300'
             }`}>
-              {evalResult?.threatScore || 0}% RISK SCORE
+              {evalResult?.threatScore || 0}% {language === 'kn' ? 'ಅಪಾಯ' : language === 'hi' ? 'जोखिम' : 'Risk'}
             </span>
           </div>
           <div className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
@@ -132,18 +136,18 @@ export default function DualStreamGuardianModal({ language }) {
             <div className="flex items-center space-x-2">
               <PhoneCall className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
               <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
-                Stream 1: Live Call Audio & NLP
+                {language === 'kn' ? '1. ಕರೆಯಲ್ಲಿ ಹೇಳುತ್ತಿರುವ ಮಾತುಗಳು' : language === 'hi' ? '1. कॉल पर कही जा रही बात' : '1. What the caller is saying'}
               </h3>
             </div>
             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
-              Active Stream
+              {language === 'kn' ? 'ಕರೆಯ ವಿವರ' : language === 'hi' ? 'कॉल विवरण' : 'Call Details'}
             </span>
           </div>
 
           <div className="space-y-4">
             <div>
               <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">
-                Incoming Caller ID
+                {language === 'kn' ? 'ಕರೆ ಮಾಡುವವರ ಸಂಖ್ಯೆ' : language === 'hi' ? 'फोन नंबर' : 'Caller Phone Number'}
               </label>
               <input
                 type="text"
@@ -155,7 +159,7 @@ export default function DualStreamGuardianModal({ language }) {
 
             <div>
               <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">
-                Speech-to-Text Transcript Stream
+                {language === 'kn' ? 'ಕರೆಯಲ್ಲಿ ಕೇಳಿಬಂದ ಮಾತುಗಳು' : language === 'hi' ? 'कॉल पर सुनाई देने वाले शब्द' : 'Words spoken on call'}
               </label>
               <textarea
                 rows={3}
@@ -189,11 +193,11 @@ export default function DualStreamGuardianModal({ language }) {
             <div className="flex items-center space-x-2">
               <Smartphone className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
               <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
-                Stream 2: Concurrent Screen State
+                {language === 'kn' ? '2. ನಿಮ್ಮ ಫೋನ್ ಸ್ಕ್ರೀನ್ ಸ್ಥಿತಿ' : language === 'hi' ? '2. फोन स्क्रीन की स्थिति' : '2. What is on your screen'}
               </h3>
             </div>
             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
-              Accessibility Tree
+              {language === 'kn' ? 'ಸ್ಕ್ರೀನ್ ವಿವರ' : language === 'hi' ? 'स्क्रीन विवरण' : 'Screen State'}
             </span>
           </div>
 
@@ -201,7 +205,7 @@ export default function DualStreamGuardianModal({ language }) {
             <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 space-y-2.5">
               <label className="flex items-center justify-between cursor-pointer">
                 <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
-                  Incoming Bank SMS with OTP (e.g., 482910)
+                  {language === 'kn' ? 'ಬ್ಯಾಂಕ್‌ನಿಂದ ಬಂದ ಒಟಿಪಿ ಮೆಸೇಜ್ (ಉದಾ: 482910)' : language === 'hi' ? 'बैंक से आया ओटीपी मैसेज' : 'Bank SMS with OTP (e.g., 482910)'}
                 </span>
                 <input
                   type="checkbox"
@@ -213,7 +217,7 @@ export default function DualStreamGuardianModal({ language }) {
 
               <label className="flex items-center justify-between cursor-pointer">
                 <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
-                  UPI PIN Entry Screen Open (PhonePe/GPay)
+                  {language === 'kn' ? 'ಯುಪಿಐ ಪಿನ್ ಹಾಕುವ ಜಾಗ (PhonePe/GPay)' : language === 'hi' ? 'यूपीआई पिन दर्ज करने वाली स्क्रीन' : 'UPI PIN Entry Screen (PhonePe/GPay)'}
                 </span>
                 <input
                   type="checkbox"
@@ -225,7 +229,7 @@ export default function DualStreamGuardianModal({ language }) {
 
               <label className="flex items-center justify-between cursor-pointer">
                 <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
-                  External APK Package Installing
+                  {language === 'kn' ? 'ಅಪರಿಚಿತ ಆ್ಯಪ್ ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ' : language === 'hi' ? 'अपरिचित ऐप डाउनलोड हो रहा है' : 'Unknown app is downloading'}
                 </span>
                 <input
                   type="checkbox"
@@ -239,15 +243,17 @@ export default function DualStreamGuardianModal({ language }) {
             {/* Screen Preview Card */}
             <div className="p-3.5 rounded-xl bg-black text-white font-mono text-xs border border-zinc-800 relative">
               <div className="text-zinc-500 text-[10px] pb-1 uppercase tracking-wider">
-                Screen Notification Layer:
+                {language === 'kn' ? 'ಸ್ಕ್ರೀನ್ ಪ್ರದರ್ಶನ:' : language === 'hi' ? 'स्क्रीन दृश्य:' : 'Screen Display:'}
               </div>
               {isOTPVisible ? (
                 <div className="p-2.5 rounded-lg bg-zinc-900 border border-zinc-800 mt-1">
-                  <div className="text-zinc-400 font-bold mb-1">SMS from Bank:</div>
+                  <div className="text-zinc-400 font-bold mb-1">
+                    {language === 'kn' ? 'ಬ್ಯಾಂಕ್ ಮೆಸೇಜ್:' : language === 'hi' ? 'बैंक मैसेज:' : 'SMS from Bank:'}
+                  </div>
                   {isEmergencyActive ? (
                     <div className="p-2 rounded bg-zinc-800 text-white font-bold flex items-center space-x-2 border border-zinc-700">
                       <EyeOff className="w-3.5 h-3.5" />
-                      <span>•••••• [MASKED BY GUARDIAN SHIELD]</span>
+                      <span>•••••• [{language === 'kn' ? 'ಸುರಕ್ಷತೆಗಾಗಿ ಮರೆಮಾಡಲಾಗಿದೆ' : language === 'hi' ? 'सुरक्षा के लिए छिपाया गया' : 'HIDDEN FOR YOUR SAFETY'}]</span>
                     </div>
                   ) : (
                     <div className="text-zinc-200 font-medium">

@@ -17,7 +17,6 @@ import {
   RefreshCw,
   Sparkles
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { speechService } from '../services/speechService';
 import { screenVisionService } from '../services/screenVisionService';
 
@@ -386,12 +385,11 @@ export default function SpotlightGuide({
 
   const handleNext = () => {
     if (isLastStep) {
-      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
       const congrats = language === 'kn' 
-        ? "ಅಭಿನಂದನೆಗಳು! ನೀವು ಈ ಕೆಲಸವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಮುಗಿಸಿದ್ದೀರಿ!"
+        ? "ಎಲ್ಲಾ ಹಂತಗಳು ಮುಗಿದಿವೆ! ನೀವು ಯಾವಾಗ ಬೇಕಾದರೂ ಮತ್ತೆ ಬಂದು ನೋಡಬಹುದು."
         : language === 'hi'
-        ? "बधाई हो! आपने यह कार्य सफलतापूर्वक सीख लिया है!"
-        : "Congratulations! You have successfully mastered this lesson!";
+        ? "सभी चरण पूरे हो गए हैं! आप जब चाहें इसे दोबारा देख सकते हैं।"
+        : "You have finished all the steps! You can come back and practice anytime.";
       speechService.speak(congrats, language);
       if (onCompleteTask) onCompleteTask(guide.id);
     } else {
@@ -399,7 +397,7 @@ export default function SpotlightGuide({
         ? "ಉತ್ತಮ! ಈಗ ಮುಂದಿನ ಹಂತಕ್ಕೆ ಹೋಗೋಣ."
         : language === 'hi'
         ? "बहुत बढ़िया! अब अगले चरण पर चलते हैं।"
-        : "Great job! Moving to the next step.";
+        : "Great! Moving to the next step.";
       speechService.speak(confirmNotice, language);
       setCurrentStepIndex(prev => prev + 1);
     }
@@ -416,74 +414,74 @@ export default function SpotlightGuide({
   const localizedLabels = {
     en: {
       stepOf: `Step ${currentStepIndex + 1} of ${steps.length}`,
-      prev: "Previous Step",
-      next: "Next Step",
-      finish: "Lesson Complete! ✓",
-      repeat: "Repeat Spoken Instruction",
-      startShare: "Start Live Screen Share",
-      stopShare: "Stop Screen Share",
-      shareActive: "Live Screen Feed Active",
-      scanning: "AI is inspecting your screen...",
-      found: "Target Located — Tap the highlighted button on your screen!",
-      notFound: "AI Co-Pilot is tracking your screen...",
-      wrongApp: "Please switch to the target app.",
-      homeScreen: "Please open the required app.",
-      dialogBlocking: "Please dismiss any popups on your screen.",
-      apiKeyLabel: "Configure Gemini API Key for Neural UI Detection",
-      apiKeySave: "Verify & Save",
-      apiKeyValidating: "Verifying Key...",
-      reScan: "Scan Screen Now",
-      autoScanOn: "Auto-Scan: ON",
-      autoScanOff: "Auto-Scan: OFF",
-      scans: "scans",
+      prev: "Previous",
+      next: "Next",
+      finish: "Finish ✓",
+      repeat: "Hear Again",
+      startShare: "Share Screen",
+      stopShare: "Stop Sharing",
+      shareActive: "Your Screen is Live",
+      scanning: "Looking at screen...",
+      found: "Tap the highlighted button!",
+      notFound: "Looking for next button...",
+      wrongApp: "Please switch to the right app.",
+      homeScreen: "Please open the app.",
+      dialogBlocking: "Please close any popup on your screen.",
+      apiKeyLabel: "Gemini Key for Screen Help",
+      apiKeySave: "Save",
+      apiKeyValidating: "Checking...",
+      reScan: "Check Screen",
+      autoScanOn: "Auto-Check: On",
+      autoScanOff: "Auto-Check: Off",
+      scans: "checks",
       tapHere: "Tap Here"
     },
     kn: {
       stepOf: `ಹಂತ ${currentStepIndex + 1} / ${steps.length}`,
-      prev: "ಹಿಂದಿನ ಹಂತ",
-      next: "ಮುಂದಿನ ಹಂತ",
-      finish: "ಪಾಠ ಮುಗಿಯಿತು! ✓",
-      repeat: "ಸೂಚನೆ ಮತ್ತೆ ಕೇಳಿ",
-      startShare: "ಲೈವ್ ಸ್ಕ್ರೀನ್ ಹಂಚಿಕೊಳ್ಳಿ",
-      stopShare: "ಸ್ಕ್ರೀನ್ ಹಂಚಿಕೆ ನಿಲ್ಲಿಸಿ",
-      shareActive: "ನಿಮ್ಮ ಫೋನ್ ಸ್ಕ್ರೀನ್ ನೇರವಾಗಿ ಪ್ರದರ್ಶನಗೊಳ್ಳುತ್ತಿದೆ",
-      scanning: "AI ನಿಮ್ಮ ಸ್ಕ್ರೀನ್ ನೋಡುತ್ತಿದೆ...",
-      found: "ಬಟನ್ ಕಂಡುಬಂದಿದೆ — ಗುರುತಿಸಿದ ಜಾಗವನ್ನು ಒತ್ತಿರಿ!",
-      notFound: "AI ಮಾರ್ಗದರ್ಶಿ ನಿಮ್ಮ ಸ್ಕ್ರೀನ್ ಗಮನಿಸುತ್ತಿದೆ...",
+      prev: "ಹಿಂದಿನದು",
+      next: "ಮುಂದಿನದು",
+      finish: "ಮುಗಿಸಿ ✓",
+      repeat: "ಮತ್ತೆ ಕೇಳಿ",
+      startShare: "ಸ್ಕ್ರೀನ್ ತೋರಿಸಿ",
+      stopShare: "ನಿಲ್ಲಿಸಿ",
+      shareActive: "ನಿಮ್ಮ ಸ್ಕ್ರೀನ್ ಕಾಣಿಸುತ್ತಿದೆ",
+      scanning: "ಸ್ಕ್ರೀನ್ ನೋಡಲಾಗುತ್ತಿದೆ...",
+      found: "ಗುರುತಿಸಿದ ಜಾಗವನ್ನು ಒತ್ತಿರಿ!",
+      notFound: "ಮುಂದಿನ ಬಟನ್ ಹುಡುಕಲಾಗುತ್ತಿದೆ...",
       wrongApp: "ದಯವಿಟ್ಟು ಸರಿಯಾದ ಆ್ಯಪ್ ತೆರೆಯಿರಿ.",
       homeScreen: "ದಯವಿಟ್ಟು ಆ್ಯಪ್ ತೆರೆಯಿರಿ.",
       dialogBlocking: "ದಯವಿಟ್ಟು ಪಾಪ್-ಅಪ್ ಮುಚ್ಚಿರಿ.",
-      apiKeyLabel: "ಲೈವ್ ಸ್ಕ್ರೀನ್ ಗುರುತಿಸುವಿಕೆಗಾಗಿ Gemini API Key ಸೇರಿಸಿ",
-      apiKeySave: "ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಉಳಿಸಿ",
+      apiKeyLabel: "ಸ್ಕ್ರೀನ್ ಸಹಾಯಕ್ಕಾಗಿ Gemini Key",
+      apiKeySave: "ಉಳಿಸಿ",
       apiKeyValidating: "ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...",
-      reScan: "ಈಗ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ",
-      autoScanOn: "ಆಟೋ-ಸ್ಕ್ಯಾನ್: ಆನ್",
-      autoScanOff: "ಆಟೋ-ಸ್ಕ್ಯಾನ್: ಆಫ್",
-      scans: "ಸ್ಕ್ಯಾನ್",
+      reScan: "ಮತ್ತೆ ನೋಡಿ",
+      autoScanOn: "ಸ್ವಯಂ-ಪರೀಕ್ಷೆ: ಆನ್",
+      autoScanOff: "ಸ್ವಯಂ-ಪರೀಕ್ಷೆ: ಆಫ್",
+      scans: "ಪರೀಕ್ಷೆಗಳು",
       tapHere: "ಇಲ್ಲಿ ಒತ್ತಿರಿ"
     },
     hi: {
       stepOf: `चरण ${currentStepIndex + 1} / ${steps.length}`,
-      prev: "पिछला चरण",
-      next: "अगला चरण",
-      finish: "पाठ पूरा हुआ! ✓",
-      repeat: "निर्देश दोबारा सुनें",
-      startShare: "लाइव स्क्रीन शेयर करें",
-      stopShare: "स्क्रीन शेयर बंद करें",
-      shareActive: "आपकी स्क्रीन का लाइव दृश्य सक्रिय है",
-      scanning: "AI आपकी स्क्रीन देख रहा है...",
-      found: "बटन मिल गया — चिह्नित जगह पर टैप करें!",
-      notFound: "AI आपकी स्क्रीन का मार्गदर्शन कर रहा है...",
+      prev: "पिछला",
+      next: "अगला",
+      finish: "समाप्त ✓",
+      repeat: "दोबारा सुनें",
+      startShare: "स्क्रीन दिखाएं",
+      stopShare: "बंद करें",
+      shareActive: "आपकी स्क्रीन दिख रही है",
+      scanning: "स्क्रीन देखी जा रही है...",
+      found: "चिह्नित जगह पर टैप करें!",
+      notFound: "अगला बटन खोज रहे हैं...",
       wrongApp: "कृपया सही ऐप खोलें।",
       homeScreen: "कृपया ऐप खोलें।",
-      dialogBlocking: "कृपया स्क्रीन पर दिख रहा पॉप-अप बंद करें।",
-      apiKeyLabel: "लाइव स्क्रीन पहचान के लिए Gemini API Key दर्ज करें",
-      apiKeySave: "जांचें और सेव करें",
+      dialogBlocking: "कृपया स्क्रीन का पॉप-अप बंद करें।",
+      apiKeyLabel: "स्क्रीन सहायता के लिए Gemini Key",
+      apiKeySave: "सेव करें",
       apiKeyValidating: "जांच हो रही है...",
-      reScan: "अभी स्कैन करें",
-      autoScanOn: "ऑटो-स्कैन: चालू",
-      autoScanOff: "ऑटो-स्कैन: बंद",
-      scans: "स्कैन",
+      reScan: "दोबारा देखें",
+      autoScanOn: "ऑटो-जांच: चालू",
+      autoScanOff: "ऑटो-जांच: बंद",
+      scans: "जांच",
       tapHere: "यहाँ टैप करें"
     }
   };
@@ -653,14 +651,16 @@ export default function SpotlightGuide({
           </div>
           <div>
             <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400 block mb-0.5">
-              {isScreenSharing ? "Live AI Command — Tap this button on your screen:" : "Current Step Command:"}
+              {isScreenSharing 
+                ? (language === 'kn' ? "ನಿಮ್ಮ ಸ್ಕ್ರೀನ್‌ನಲ್ಲಿ ಇಲ್ಲಿ ಒತ್ತಿರಿ:" : language === 'hi' ? "अपनी स्क्रीन पर यहाँ टैप करें:" : "Tap this on your screen:") 
+                : (language === 'kn' ? "ಮುಂದಿನ ಸೂಚನೆ:" : language === 'hi' ? "अगला निर्देश:" : "What to do next:")}
             </span>
             <p className="text-base sm:text-xl font-extrabold leading-snug text-white">
               {currentStep.instruction[language] || currentStep.instruction.en}
             </p>
             {currentStep.spotlightTarget && (
               <div className="mt-2 inline-flex items-center space-x-1.5 px-3 py-1 rounded-md bg-white text-black text-xs font-black shadow-xs">
-                <span>🎯 Target Button:</span>
+                <span>{language === 'kn' ? '🎯 ಇಲ್ಲಿ ಒತ್ತಿರಿ:' : language === 'hi' ? '🎯 यहाँ दबाएं:' : '🎯 Tap here:'}</span>
                 <span className="underline">{currentStep.spotlightTarget}</span>
               </div>
             )}
@@ -681,14 +681,14 @@ export default function SpotlightGuide({
         <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-6 flex-wrap gap-2">
           <div className="flex items-center space-x-2">
             <Smartphone className="w-4 h-4 text-zinc-400" />
-            <span>{isScreenSharing ? labels.shareActive : "Interactive Device Preview"}</span>
+            <span>{isScreenSharing ? labels.shareActive : (language === 'kn' ? 'ಫೋನ್ ಸ್ಕ್ರೀನ್' : language === 'hi' ? 'फोन स्क्रीन' : 'Phone Screen')}</span>
             {isScreenSharing && scanCount > 0 && (
               <span className="text-zinc-600 normal-case">({scanCount} {labels.scans})</span>
             )}
           </div>
           <span className="text-zinc-300 flex items-center font-bold">
             <Target className="w-3.5 h-3.5 mr-1 text-emerald-400" />
-            Target: {currentStep.spotlightTarget}
+            {language === 'kn' ? 'ಹುಡುಕಿ:' : language === 'hi' ? 'खोजें:' : 'Find:'} {currentStep.spotlightTarget}
           </span>
         </div>
 
@@ -700,13 +700,15 @@ export default function SpotlightGuide({
           </div>
         )}
 
-        {/* AI Guidance Message */}
+        {/* Guidance Message */}
         {visionResult && visionResult.guidanceMessage && (
           <div className="mb-4 p-3.5 rounded-2xl bg-zinc-900 border border-zinc-800 text-sm font-medium text-zinc-200 leading-relaxed">
             <div className="flex items-start space-x-2">
               <Eye className="w-4 h-4 text-zinc-400 flex-shrink-0 mt-0.5" />
               <div>
-                <span className="text-[10px] uppercase tracking-wider text-zinc-500 block mb-1">AI Co-Pilot</span>
+                <span className="text-[10px] uppercase tracking-wider text-zinc-500 block mb-1">
+                  {language === 'kn' ? 'ಸಹಾಯ ಸೂಚನೆ' : language === 'hi' ? 'सहायता संदेश' : 'Help Note'}
+                </span>
                 {visionResult.guidanceMessage}
               </div>
             </div>
@@ -751,17 +753,17 @@ export default function SpotlightGuide({
                 <div>
                   <p className="text-sm font-semibold text-zinc-300 mb-1">
                     {language === 'kn'
-                      ? "ನಿಮ್ಮ ನೈಜ ಫೋನ್ ಅಥವಾ ಆ್ಯಪ್ ಸ್ಕ್ರೀನ್ ಹಂಚಿಕೊಳ್ಳಿ"
+                      ? "ನಿಮ್ಮ ಫೋನ್ ಸ್ಕ್ರೀನ್ ತೋರಿಸಿ"
                       : language === 'hi'
-                      ? "अपनी असली फोन या ऐप स्क्रीन शेयर करें"
-                      : "Share your phone or app window live"}
+                      ? "अपने फोन की स्क्रीन दिखाएं"
+                      : "Show your phone screen"}
                   </p>
                   <p className="text-xs text-zinc-500 leading-relaxed max-w-xs">
                     {language === 'kn'
-                      ? "ನೀವು ಸ್ಕ್ರೀನ್ ಹಂಚಿಕೊಂಡಾಗ, AI ನಿಮ್ಮ ವಾಟ್ಸಾಪ್ ಅಥವಾ ಫೋನ್‌ಪೇ ನೋಡಿ ಯಾವ ಬಟನ್ ಒತ್ತಬೇಕೆಂದು ನೈಜ ಸಮಯದಲ್ಲಿ ತೋರಿಸುತ್ತದೆ."
+                      ? "ಸ್ಕ್ರೀನ್ ಹಂಚಿಕೊಂಡರೆ, ಯಾವ ಬಟನ್ ಒತ್ತಬೇಕೆಂದು ಸುಲಭವಾಗಿ ತೋರಿಸಲಾಗುತ್ತದೆ."
                       : language === 'hi'
-                      ? "जब आप स्क्रीन शेयर करेंगे, AI आपके व्हाट्सएप या फोनपे में देखकर सही बटन पर लाइव हाइलाइट करेगा।"
-                      : "The AI looks at your real screen feed to highlight buttons and text-boxes with zero mockups."}
+                      ? "स्क्रीन शेयर करने पर हम आपको दिखाएंगे कि किस बटन पर टैप करना है।"
+                      : "Share your screen so the app can highlight where to tap on your phone."}
                   </p>
                 </div>
                 <button
@@ -773,7 +775,7 @@ export default function SpotlightGuide({
                 </button>
               </div>
               <div className="text-[10px] text-zinc-700 text-center pb-2">
-                Powered by Gemini Vision Live Inspector
+                Simple Step-by-Step Guidance
               </div>
             </div>
           )}
