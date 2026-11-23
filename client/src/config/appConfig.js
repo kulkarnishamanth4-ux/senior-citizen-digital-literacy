@@ -12,10 +12,17 @@
 
 const customName = import.meta.env.VITE_APP_NAME || "ElderAssist AI";
 
+const isNative = typeof window !== 'undefined' && (
+  Boolean(window.Capacitor) ||
+  window.location.protocol === 'capacitor:' ||
+  window.location.protocol === 'ionic:' ||
+  Boolean(window.androidBridge)
+);
+
 const defaultApiUrl =
-  typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+  isNative || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
     ? 'https://senior-citizen-digital-literacy.onrender.com'
-    : 'http://localhost:8000';
+    : (import.meta.env.PROD ? 'https://senior-citizen-digital-literacy.onrender.com' : 'http://localhost:8000');
 
 export const APP_CONFIG = {
   // Primary App Name (English)

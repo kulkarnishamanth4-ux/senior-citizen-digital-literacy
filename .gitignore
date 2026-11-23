@@ -18,3 +18,10 @@ env/
 .DS_Store
 Thumbs.db
 *.log
+
+# Android build artifacts
+android/.gradle/
+android/build/
+android/app/build/
+*.apk
+*.aab

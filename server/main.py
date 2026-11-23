@@ -266,7 +266,7 @@ def analyze_screen(req: ScreenAnalyzeRequest):
     if "," in clean_base64:
         clean_base64 = clean_base64.split(",")[1]
 
-    prompt = f"""You are an expert AI Accessibility & Digital Literacy Co-Pilot assisting an elderly senior citizen.
+    prompt = f"""You are an expert AI Accessibility helper for elderly senior citizens.
 The senior is sharing their REAL smartphone or computer screen.
 Current Task: "{req.task_title}"
 Current Step Instruction: "{req.step_instruction}"
@@ -523,7 +523,7 @@ def transcribe_voice(req: VoiceTranscribeRequest):
     if not api_key:
         return VoiceTranscribeResponse(
             transcript="Audio received",
-            reply="Please configure GEMINI_API_KEY to enable neural voice processing, or type your question in the text box below.",
+            reply="Please set the GEMINI_API_KEY so voice help can work, or type your question in the box below.",
             suggested_guide_ids=[]
         )
 

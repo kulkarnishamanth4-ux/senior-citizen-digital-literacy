@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, MicOff, Volume2, X, Sparkles, Clock, Send, AlertCircle, ArrowRight, Loader2, BookOpen } from 'lucide-react';
 import { speechService } from '../services/speechService';
+import { screenVisionService } from '../services/screenVisionService';
 import { TASK_GUIDES } from '../data/guides';
 import { APP_CONFIG } from '../config/appConfig';
 
@@ -334,7 +335,7 @@ export default function VoiceAssistantModal({
     // 2. Query Backend Intelligent Assistant API
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000);
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
       const res = await fetch(`${apiBaseUrl}/api/chat-assistant`, {
         method: 'POST',
@@ -507,7 +508,7 @@ export default function VoiceAssistantModal({
         {transcript && (
           <div className="mb-4 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700">
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">
-              You Asked:
+              Your Question:
             </span>
             <p className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
               "{transcript}"
@@ -519,7 +520,7 @@ export default function VoiceAssistantModal({
         {isLoadingReply && (
           <div className="mb-4 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 flex items-center space-x-2 text-xs text-zinc-500">
             <Loader2 className="w-4 h-4 animate-spin text-zinc-600 dark:text-zinc-300" />
-            <span>Thinking and preparing the best explanation for you...</span>
+            <span>Finding the answer for you...</span>
           </div>
         )}
 
@@ -528,7 +529,7 @@ export default function VoiceAssistantModal({
           <div className="mb-4 p-5 rounded-2xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-xs">
             <div className="flex items-center space-x-1.5 mb-2 text-xs font-bold text-zinc-600 dark:text-zinc-400">
               <Volume2 className="w-4 h-4" />
-              <span>Assistant Answer:</span>
+              <span>Answer:</span>
             </div>
             <p className="text-sm sm:text-base font-medium leading-relaxed mb-3">
               {assistantReply}

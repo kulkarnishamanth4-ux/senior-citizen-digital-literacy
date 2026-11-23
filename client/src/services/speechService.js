@@ -1,19 +1,19 @@
 /**
- * Infinite-Pause & Cadence-Adaptive Speech Engine
- * Specially engineered for older adults experiencing word-retrieval hesitation (anomia)
- * and breathlessness, preventing premature speech cutoff.
+ * Patient Speech Engine
+ * Designed for older adults — allows long pauses without cutting off,
+ * so seniors can speak at their own pace.
  */
 
-class CadenceAdaptiveSpeechService {
+class PatientSpeechService {
   constructor() {
     this.recognition = null;
     this.isListening = false;
-    this.speechRate = 0.82; // Calmed, natural slower pace for elder comprehension
+    this.speechRate = 0.82; // Slower pace for easy listening
     this.lang = 'en-IN';
     
-    // Cadence timers & state
+    // Pause timers & state
     this.adaptiveTimeout = null;
-    this.maxPauseWindowMs = 6500; // Standard assistants cut off at 1500ms; we grant up to 6.5s
+    this.maxPauseWindowMs = 6500; // We wait up to 6.5 seconds for seniors to finish talking
     this.currentTranscript = '';
     this.onResultCallback = null;
     this.onStatusCallback = null;
@@ -45,7 +45,7 @@ class CadenceAdaptiveSpeechService {
 
       rec.onstart = () => {
         this.isListening = true;
-        this.updateStatus('listening', 'Listening carefully... Take your time, Amma.');
+        this.updateStatus('listening', 'Listening... Take your time.');
       };
 
       rec.onresult = (event) => {
@@ -134,7 +134,7 @@ class CadenceAdaptiveSpeechService {
   }
 
   /**
-   * Evaluates whether the pause is mid-sentence or final
+   * Checks if the person is in the middle of speaking
    */
   handleCadencePause(text) {
     if (this.adaptiveTimeout) {
@@ -260,7 +260,7 @@ class CadenceAdaptiveSpeechService {
   }
 
   /**
-   * Senior-friendly Text-to-Speech (TTS)
+   * Easy-to-understand Text-to-Speech (TTS)
    */
   speak(text, langCode = 'en', onDone = null) {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
@@ -314,4 +314,4 @@ class CadenceAdaptiveSpeechService {
   }
 }
 
-export const speechService = new CadenceAdaptiveSpeechService();
+export const speechService = new PatientSpeechService();

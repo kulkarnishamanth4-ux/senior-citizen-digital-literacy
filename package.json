@@ -19,5 +19,10 @@
     "vtu-societal-project"
   ],
   "author": "Shamanth Kulkarni",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/cli": "^8.6.2",
+    "@capacitor/core": "^8.6.2"
+  }
 }

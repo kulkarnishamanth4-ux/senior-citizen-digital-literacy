@@ -115,7 +115,7 @@ export default function SpotlightGuide({
 
     if (isScreenSharing && autoScanEnabled) {
       analysisTimerRef.current = setInterval(() => {
-        if (isMountedRef.current && !isAnalyzing) {
+        if (isMountedRef.current && !isAnalyzingRef.current) {
           runSingleAnalysis();
         }
       }, 3500);
@@ -648,7 +648,7 @@ export default function SpotlightGuide({
           </div>
 
           {apiKeyStatus === 'valid' && (
-            <p className="mt-3 text-xs text-emerald-400 font-semibold">✓ Verified! Starting live neural screen recognition...</p>
+            <p className="mt-3 text-xs text-emerald-400 font-semibold">✓ Verified! Starting live screen help...</p>
           )}
           {apiKeyStatus === 'invalid' && (
             <p className="mt-3 text-xs text-red-400 font-semibold">✗ Invalid key. Please check and try again.</p>
@@ -819,7 +819,7 @@ export default function SpotlightGuide({
           {isScreenSharing && isAnalyzing && (
             <div className="absolute top-3 right-3 flex items-center space-x-1.5 bg-black/80 border border-zinc-700 px-3 py-1 rounded-full z-40">
               <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
-              <span className="text-[10px] text-white font-semibold">AI Inspecting Screen...</span>
+              <span className="text-[10px] text-white font-semibold">Looking at screen...</span>
             </div>
           )}
 
