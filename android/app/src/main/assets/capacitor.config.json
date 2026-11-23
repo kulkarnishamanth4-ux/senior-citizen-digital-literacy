@@ -1,0 +1,9 @@
+{
+	"appId": "org.bmsit.elderassist",
+	"appName": "ElderAssist",
+	"webDir": "client/dist",
+	"server": {
+		"androidScheme": "https",
+		"cleartext": true
+	}
+}
