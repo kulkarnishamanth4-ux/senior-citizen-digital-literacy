@@ -12,6 +12,11 @@
 
 const customName = import.meta.env.VITE_APP_NAME || "ElderAssist AI";
 
+const defaultApiUrl =
+  typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+    ? 'https://senior-citizen-digital-literacy.onrender.com'
+    : 'http://localhost:8000';
+
 export const APP_CONFIG = {
   // Primary App Name (English)
   name: customName,
@@ -20,7 +25,7 @@ export const APP_CONFIG = {
   logoInitial: "E",
 
   // Backend API base URL
-  apiBaseUrl: import.meta.env.VITE_API_URL || "http://localhost:8000",
+  apiBaseUrl: import.meta.env.VITE_API_URL || defaultApiUrl,
 
   // Multilingual Brand Names
   brandName: {

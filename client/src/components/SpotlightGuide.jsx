@@ -15,7 +15,7 @@ import {
   Scan,
   AlertCircle,
   RefreshCw,
-  Maximize2
+  Sparkles
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { speechService } from '../services/speechService';
@@ -94,6 +94,11 @@ export default function SpotlightGuide({
   // Speak current step on change
   useEffect(() => {
     speakCurrentStep();
+    if (isScreenSharing) {
+      setTimeout(() => {
+        runSingleAnalysis();
+      }, 500);
+    }
   }, [currentStepIndex, language]);
 
   // Reset vision result when step changes
@@ -112,7 +117,7 @@ export default function SpotlightGuide({
         if (isMountedRef.current && !isAnalyzing) {
           runSingleAnalysis();
         }
-      }, 4000);
+      }, 3500);
     }
 
     return () => clearInterval(analysisTimerRef.current);
@@ -158,12 +163,21 @@ export default function SpotlightGuide({
       setScreenStream(stream);
       setIsScreenSharing(true);
 
+      // Active voice command on screen connection
+      const stepText = currentStep.instruction[language] || currentStep.instruction.en;
+      const target = currentStep.spotlightTarget;
       const notice = language === 'kn'
-        ? "ಸ್ಕ್ರೀನ್ ಹಂಚಿಕೆ ಸಕ್ರಿಯಗೊಂಡಿದೆ. AI ನಿಮ್ಮ ಸ್ಕ್ರೀನ್ ನೋಡುತ್ತಿದೆ."
+        ? `ಸ್ಕ್ರೀನ್ ಹಂಚಿಕೆ ಸಕ್ರಿಯಗೊಂಡಿದೆ! ಹಂತ ${currentStepIndex + 1}: ${stepText}. ಹೈಲೈಟ್ ಮಾಡಿರುವ ${target} ಮೇಲೆ ಒತ್ತಿರಿ.`
         : language === 'hi'
-        ? "स्क्रीन शेयर शुरू हो गया है। AI आपकी स्क्रीन देख रहा है।"
-        : "Screen share active. AI is now inspecting your screen to highlight the buttons.";
+        ? `स्क्रीन शेयर शुरू हो गया है! चरण ${currentStepIndex + 1}: ${stepText}. हाइलाइट किए गए ${target} पर टैप करें।`
+        : `Screen connected! Step ${currentStepIndex + 1}: ${stepText}. Tap the highlighted ${target} on your screen.`;
+      
       speechService.speak(notice, language);
+
+      // Trigger immediate first scan
+      setTimeout(() => {
+        runSingleAnalysis();
+      }, 600);
 
       // Check vision readiness
       if (!isVisionReady) {
@@ -229,7 +243,6 @@ export default function SpotlightGuide({
 
       if (result.success === false && result.reason === 'NO_API_KEY') {
         setIsVisionReady(false);
-        setShowApiKeyInput(true);
         setAnalysisError(null);
       } else if (result.success === false) {
         setAnalysisError(result.guidanceMessage || result.error || 'Analysis failed.');
@@ -253,26 +266,80 @@ export default function SpotlightGuide({
     }
   }, [isScreenSharing, isAnalyzing, currentStep, guide, language]);
 
-  // --------------- Smart Coordinate Positioning ---------------
+  // --------------- Comprehensive Smart Coordinate Positioning ---------------
 
   const getHeuristicCoords = (targetName = '') => {
     const t = targetName.toLowerCase();
-    if (t.includes('video') || t.includes('dots') || t.includes('menu') || t.includes('camera icon')) {
-      return { top: '10%', left: '78%', width: '16%', height: '8%' };
+    
+    // WhatsApp App Icon / Launcher
+    if (t.includes('whatsapp app icon') || t.includes('upi app') || t.includes('health app') || t.includes('digilocker app')) {
+      return { top: '25%', left: '20%', width: '22%', height: '12%' };
     }
-    if (t.includes('send') || t.includes('mic') || t.includes('microphone') || t.includes('submit')) {
-      return { top: '82%', left: '76%', width: '18%', height: '10%' };
+    // Settings icon
+    if (t.includes('settings gear icon') || t.includes('gear')) {
+      return { top: '25%', left: '60%', width: '22%', height: '12%' };
     }
-    if (t.includes('paperclip') || t.includes('attachment') || t.includes('type') || t.includes('keyboard')) {
-      return { top: '82%', left: '8%', width: '22%', height: '10%' };
+    // Video camera icon / phone call icon
+    if (t.includes('video camera icon') || t.includes('camera icon') || t.includes('video call')) {
+      return { top: '6%', left: '78%', width: '16%', height: '8%' };
     }
-    if (t.includes('contact') || t.includes('recipient') || t.includes('name') || t.includes('header')) {
-      return { top: '18%', left: '12%', width: '76%', height: '10%' };
+    // Contact name / recipient row in list
+    if (t.includes('contact name') || t.includes('recipient') || t.includes('verified beneficiary')) {
+      return { top: '20%', left: '8%', width: '84%', height: '10%' };
     }
-    if (t.includes('torch') || t.includes('flashlight') || t.includes('slider') || t.includes('timeout')) {
-      return { top: '32%', left: '18%', width: '64%', height: '14%' };
+    // Paperclip / attachment icon
+    if (t.includes('paperclip') || t.includes('attachment')) {
+      return { top: '84%', left: '8%', width: '16%', height: '8%' };
     }
-    return { top: '42%', left: '15%', width: '70%', height: '14%' };
+    // Gallery / Camera picker popup
+    if (t.includes('gallery') || t.includes('camera button') || t.includes('plan selector')) {
+      return { top: '55%', left: '20%', width: '60%', height: '18%' };
+    }
+    // Mic icon / green send button
+    if (t.includes('mic icon') || t.includes('green mic') || t.includes('send green button') || t.includes('send trigger')) {
+      return { top: '84%', left: '78%', width: '16%', height: '8%' };
+    }
+    // Torch icon in notification shade
+    if (t.includes('torch') || t.includes('flashlight')) {
+      return { top: '22%', left: '26%', width: '22%', height: '12%' };
+    }
+    // Notification shade swipe
+    if (t.includes('notification shade') || t.includes('swipe')) {
+      return { top: '5%', left: '20%', width: '60%', height: '14%' };
+    }
+    // Font slider in display settings
+    if (t.includes('font slider') || t.includes('slider') || t.includes('display')) {
+      return { top: '48%', left: '12%', width: '76%', height: '10%' };
+    }
+    // Mobile recharge / electricity icon
+    if (t.includes('recharge') || t.includes('electricity') || t.includes('board selector')) {
+      return { top: '34%', left: '15%', width: '30%', height: '12%' };
+    }
+    // PIN pad
+    if (t.includes('pin screen') || t.includes('pin pad') || t.includes('pin rule')) {
+      return { top: '62%', left: '10%', width: '80%', height: '28%' };
+    }
+    // Clear all button in notifications
+    if (t.includes('clear all') || t.includes('clear')) {
+      return { top: '80%', left: '35%', width: '30%', height: '8%' };
+    }
+    // Info icon / block button
+    if (t.includes('info icon') || t.includes('three dots') || t.includes('menu')) {
+      return { top: '8%', left: '82%', width: '12%', height: '8%' };
+    }
+    if (t.includes('block button')) {
+      return { top: '70%', left: '15%', width: '70%', height: '10%' };
+    }
+    // SOS / Power button
+    if (t.includes('power button') || t.includes('hardware')) {
+      return { top: '28%', left: '92%', width: '7%', height: '16%' };
+    }
+    if (t.includes('sos') || t.includes('broadcast')) {
+      return { top: '48%', left: '15%', width: '70%', height: '18%' };
+    }
+
+    // Default center spotlight
+    return { top: '38%', left: '15%', width: '70%', height: '14%' };
   };
 
   const activeBox = (visionResult && visionResult.found && visionResult.cssBox)
@@ -307,9 +374,10 @@ export default function SpotlightGuide({
     if (!currentStep) return;
     setIsPlayingAudio(true);
     const instructionText = currentStep.instruction[language] || currentStep.instruction.en;
+    const target = currentStep.spotlightTarget ? ` Target: ${currentStep.spotlightTarget}.` : '';
     const tipText = currentStep.tip ? ` Tip: ${currentStep.tip[language] || currentStep.tip.en}` : '';
     
-    speechService.speak(`${instructionText} ${tipText}`, language, () => {
+    speechService.speak(`${instructionText} ${target} ${tipText}`, language, () => {
       setIsPlayingAudio(false);
     });
   };
@@ -327,6 +395,12 @@ export default function SpotlightGuide({
       speechService.speak(congrats, language);
       if (onCompleteTask) onCompleteTask(guide.id);
     } else {
+      const confirmNotice = language === 'kn'
+        ? "ಉತ್ತಮ! ಈಗ ಮುಂದಿನ ಹಂತಕ್ಕೆ ಹೋಗೋಣ."
+        : language === 'hi'
+        ? "बहुत बढ़िया! अब अगले चरण पर चलते हैं।"
+        : "Great job! Moving to the next step.";
+      speechService.speak(confirmNotice, language);
       setCurrentStepIndex(prev => prev + 1);
     }
   };
@@ -348,14 +422,14 @@ export default function SpotlightGuide({
       repeat: "Repeat Spoken Instruction",
       startShare: "Start Live Screen Share",
       stopShare: "Stop Screen Share",
-      shareActive: "Live Device Screen Feed Active",
+      shareActive: "Live Screen Feed Active",
       scanning: "AI is inspecting your screen...",
-      found: "Target Located — Tap the highlighted button!",
-      notFound: "Looking for target button on screen...",
+      found: "Target Located — Tap the highlighted button on your screen!",
+      notFound: "AI Co-Pilot is tracking your screen...",
       wrongApp: "Please switch to the target app.",
       homeScreen: "Please open the required app.",
       dialogBlocking: "Please dismiss any popups on your screen.",
-      apiKeyLabel: "Configure Gemini API Key for Neural UI Element Detection",
+      apiKeyLabel: "Configure Gemini API Key for Neural UI Detection",
       apiKeySave: "Verify & Save",
       apiKeyValidating: "Verifying Key...",
       reScan: "Scan Screen Now",
@@ -375,7 +449,7 @@ export default function SpotlightGuide({
       shareActive: "ನಿಮ್ಮ ಫೋನ್ ಸ್ಕ್ರೀನ್ ನೇರವಾಗಿ ಪ್ರದರ್ಶನಗೊಳ್ಳುತ್ತಿದೆ",
       scanning: "AI ನಿಮ್ಮ ಸ್ಕ್ರೀನ್ ನೋಡುತ್ತಿದೆ...",
       found: "ಬಟನ್ ಕಂಡುಬಂದಿದೆ — ಗುರುತಿಸಿದ ಜಾಗವನ್ನು ಒತ್ತಿರಿ!",
-      notFound: "ಬಟನ್ ಹುಡುಕುತ್ತಿದೆ...",
+      notFound: "AI ಮಾರ್ಗದರ್ಶಿ ನಿಮ್ಮ ಸ್ಕ್ರೀನ್ ಗಮನಿಸುತ್ತಿದೆ...",
       wrongApp: "ದಯವಿಟ್ಟು ಸರಿಯಾದ ಆ್ಯಪ್ ತೆರೆಯಿರಿ.",
       homeScreen: "ದಯವಿಟ್ಟು ಆ್ಯಪ್ ತೆರೆಯಿರಿ.",
       dialogBlocking: "ದಯವಿಟ್ಟು ಪಾಪ್-ಅಪ್ ಮುಚ್ಚಿರಿ.",
@@ -399,7 +473,7 @@ export default function SpotlightGuide({
       shareActive: "आपकी स्क्रीन का लाइव दृश्य सक्रिय है",
       scanning: "AI आपकी स्क्रीन देख रहा है...",
       found: "बटन मिल गया — चिह्नित जगह पर टैप करें!",
-      notFound: "बटन ढूंढ रहा है...",
+      notFound: "AI आपकी स्क्रीन का मार्गदर्शन कर रहा है...",
       wrongApp: "कृपया सही ऐप खोलें।",
       homeScreen: "कृपया ऐप खोलें।",
       dialogBlocking: "कृपया स्क्रीन पर दिख रहा पॉप-अप बंद करें।",
@@ -420,13 +494,7 @@ export default function SpotlightGuide({
   const getStatusInfo = () => {
     if (!isScreenSharing) return null;
     if (isAnalyzing) return { text: labels.scanning, color: 'text-zinc-300', icon: Loader2, spin: true };
-    if (!visionResult) return { text: labels.notFound, color: 'text-zinc-400', icon: Scan, spin: false };
-
-    const state = visionResult.screenState;
-    if (state === 'FOUND') return { text: labels.found, color: 'text-emerald-400', icon: CheckCircle2, spin: false };
-    if (state === 'HOME_SCREEN') return { text: labels.homeScreen, color: 'text-amber-400', icon: AlertCircle, spin: false };
-    if (state === 'WRONG_APP') return { text: labels.wrongApp, color: 'text-amber-400', icon: AlertCircle, spin: false };
-    if (state === 'DIALOG_BLOCKING') return { text: labels.dialogBlocking, color: 'text-amber-400', icon: AlertCircle, spin: false };
+    if (visionResult && visionResult.found) return { text: labels.found, color: 'text-emerald-400', icon: CheckCircle2, spin: false };
     return { text: labels.notFound, color: 'text-zinc-400', icon: Scan, spin: false };
   };
 
@@ -521,22 +589,6 @@ export default function SpotlightGuide({
           {guide.description[language] || guide.description.en}
         </p>
 
-        {/* Current Instruction Box */}
-        <div className="mt-8 p-6 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700">
-          <p className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-white leading-snug">
-            {currentStep.instruction[language] || currentStep.instruction.en}
-          </p>
-
-          {currentStep.tip && (
-            <div className="mt-4 flex items-start space-x-2 text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 font-medium">
-              <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-zinc-400" />
-              <span>
-                <strong>Note:</strong> {currentStep.tip[language] || currentStep.tip.en}
-              </span>
-            </div>
-          )}
-        </div>
-
         {shareError && (
           <div className="mt-4 p-4 rounded-2xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-xs text-zinc-800 dark:text-zinc-200 flex items-start space-x-2">
             <AlertCircle className="w-4 h-4 text-zinc-600 dark:text-zinc-400 flex-shrink-0 mt-0.5" />
@@ -593,6 +645,36 @@ export default function SpotlightGuide({
         </div>
       )}
 
+      {/* PROMINENT LIVE COMMAND BANNER DIRECTLY ABOVE SCREEN VIEW */}
+      <div className="mb-4 p-4 sm:p-5 rounded-2xl bg-zinc-900 text-white border-2 border-zinc-700 flex items-center justify-between gap-4 shadow-xl">
+        <div className="flex items-start space-x-3.5">
+          <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center font-black text-sm flex-shrink-0 mt-0.5 shadow">
+            AI
+          </div>
+          <div>
+            <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400 block mb-0.5">
+              {isScreenSharing ? "Live AI Command — Tap this button on your screen:" : "Current Step Command:"}
+            </span>
+            <p className="text-base sm:text-xl font-extrabold leading-snug text-white">
+              {currentStep.instruction[language] || currentStep.instruction.en}
+            </p>
+            {currentStep.spotlightTarget && (
+              <div className="mt-2 inline-flex items-center space-x-1.5 px-3 py-1 rounded-md bg-white text-black text-xs font-black shadow-xs">
+                <span>🎯 Target Button:</span>
+                <span className="underline">{currentStep.spotlightTarget}</span>
+              </div>
+            )}
+          </div>
+        </div>
+        <button
+          onClick={speakCurrentStep}
+          className="p-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white flex-shrink-0 border border-zinc-600 transition-all shadow-md"
+          title="Repeat spoken command"
+        >
+          <Volume2 className="w-5 h-5" />
+        </button>
+      </div>
+
       {/* LIVE SCREEN VIEW CONTAINER */}
       <div className="bg-zinc-950 rounded-3xl p-6 sm:p-10 text-white shadow-xl border border-zinc-800 mb-8">
         {/* Header Bar */}
@@ -605,7 +687,7 @@ export default function SpotlightGuide({
             )}
           </div>
           <span className="text-zinc-300 flex items-center font-bold">
-            <Target className="w-3.5 h-3.5 mr-1" />
+            <Target className="w-3.5 h-3.5 mr-1 text-emerald-400" />
             Target: {currentStep.spotlightTarget}
           </span>
         </div>
@@ -698,7 +780,7 @@ export default function SpotlightGuide({
 
           {/* DYNAMIC SPOTLIGHT OVERLAY: HIGH CONTRAST GLOW WITHOUT DARKENING THE SCREEN */}
           <div 
-            className="live-spotlight-box rounded-2xl flex flex-col items-center justify-center p-2 text-center cursor-pointer transition-all duration-300"
+            className="live-spotlight-box rounded-2xl flex flex-col items-center justify-center p-2 text-center cursor-pointer transition-all duration-300 z-30"
             style={{
               top: activeBox.top || '35%',
               left: activeBox.left || '15%',
@@ -707,19 +789,22 @@ export default function SpotlightGuide({
             }}
             onClick={handleNext}
           >
-            <div className="bg-black text-white px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider shadow-xl whitespace-nowrap mb-1 border border-zinc-700">
-              🎯 {visionResult?.detectedLabel || currentStep.spotlightTarget}
+            {/* Pulsing indicator tag */}
+            <div className="bg-black text-white px-3 py-1 rounded-md text-xs font-black uppercase tracking-wider shadow-2xl whitespace-nowrap mb-1 border border-zinc-700 flex items-center space-x-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span>🎯 {visionResult?.detectedLabel || currentStep.spotlightTarget}</span>
             </div>
-            <span className="text-[10px] font-black text-black bg-white px-2 py-0.5 rounded shadow-md tracking-wider">
-              {labels.tapHere}
-            </span>
+            <div className="text-[11px] font-black text-black bg-white px-3 py-0.5 rounded-full shadow-lg tracking-wider flex items-center space-x-1">
+              <span>👇</span>
+              <span>{labels.tapHere}</span>
+            </div>
           </div>
 
           {/* Scanning badge */}
           {isScreenSharing && isAnalyzing && (
             <div className="absolute top-3 right-3 flex items-center space-x-1.5 bg-black/80 border border-zinc-700 px-3 py-1 rounded-full z-40">
               <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
-              <span className="text-[10px] text-white font-semibold">AI Inspecting...</span>
+              <span className="text-[10px] text-white font-semibold">AI Inspecting Screen...</span>
             </div>
           )}
 

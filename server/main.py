@@ -296,7 +296,7 @@ Return ONLY a valid JSON object in this exact schema without markdown backticks 
         img_bytes = base64.b64decode(clean_base64)
         part = types.Part.from_bytes(data=img_bytes, mime_type="image/jpeg")
 
-        for model_name in ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-3.8-flash"]:
+        for model_name in ["gemini-2.0-flash", "gemini-1.5-flash"]:
             try:
                 response = client.models.generate_content(
                     model=model_name,
@@ -314,7 +314,7 @@ Return ONLY a valid JSON object in this exact schema without markdown backticks 
 
     # Fallback to direct REST API if SDK call didn't succeed
     if not parsed_json:
-        for model_name in ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-3.8-flash"]:
+        for model_name in ["gemini-2.0-flash", "gemini-1.5-flash"]:
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key.strip()}"
                 payload = {
@@ -406,7 +406,7 @@ Return ONLY valid JSON matching this schema:
   "suggested_guide_ids": ["whatsapp-video-call"]
 }}"""
             res = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-2.0-flash",
                 contents=prompt
             )
             raw = re.sub(r'```json|```', '', res.text or '').strip()
@@ -524,7 +524,7 @@ def transcribe_voice(req: VoiceTranscribeRequest):
 }}"""
 
         res = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-2.0-flash",
             contents=[audio_part, prompt]
         )
         raw = re.sub(r'```json|```', '', res.text or '').strip()

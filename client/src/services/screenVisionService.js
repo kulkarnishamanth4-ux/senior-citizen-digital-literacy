@@ -9,7 +9,7 @@ import { APP_CONFIG } from '../config/appConfig';
 class ScreenVisionService {
   constructor() {
     this.storageKey = `${APP_CONFIG.storagePrefix}gemini_key`;
-    this.apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    this.apiBaseUrl = APP_CONFIG.apiBaseUrl || 'http://localhost:8000';
   }
 
   /**
@@ -152,7 +152,7 @@ class ScreenVisionService {
     // If backend has GEMINI_API_KEY configured in server env, no client key is needed!
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 9000);
+      const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s to allow Render cold start
 
       const response = await fetch(`${this.apiBaseUrl}/api/analyze-screen`, {
         method: 'POST',
@@ -288,8 +288,8 @@ Return ONLY a valid JSON object in this exact schema without extra text:
   "action_hint": "Tap the camera icon"
 }`;
 
-    // Prefer fast vision models
-    const models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-3.8-flash'];
+    // Active multimodal models on Google AI Studio
+    const models = ['gemini-2.0-flash', 'gemini-1.5-flash'];
     let lastError = null;
 
     for (const model of models) {

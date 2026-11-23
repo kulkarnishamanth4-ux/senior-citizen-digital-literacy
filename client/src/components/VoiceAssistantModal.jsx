@@ -23,6 +23,7 @@ export default function VoiceAssistantModal({
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const transcriptRef = useRef('');
   const isWebSpeechNetworkBlocked = useRef(false);
 
   const apiBaseUrl = APP_CONFIG.apiBaseUrl || 'http://localhost:8000';
@@ -110,9 +111,11 @@ export default function VoiceAssistantModal({
         setIsListening(false);
         if (message && message.toLowerCase().includes('network')) {
           isWebSpeechNetworkBlocked.current = true;
-          // Don't show network error if we have media recorder active
-          if (!isRecordingAudio) {
-            setErrorMessage("Browser cloud speech is unavailable. Using direct audio recording — tap mic to speak or type below.");
+          // If direct audio recording is active in background, do not interrupt with a jarring error
+          if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+            setErrorMessage(null);
+          } else {
+            setErrorMessage("Browser cloud speech is blocked by your network. Direct audio recording is enabled — tap mic to speak or type below.");
           }
         } else {
           setErrorMessage(message);
@@ -127,6 +130,7 @@ export default function VoiceAssistantModal({
     };
 
     speechService.onResultCallback = (textResult, isFinal) => {
+      transcriptRef.current = textResult;
       setTranscript(textResult);
       if (isFinal) {
         handleUserQuery(textResult);
@@ -165,6 +169,7 @@ export default function VoiceAssistantModal({
     }
 
     // START listening / recording
+    transcriptRef.current = '';
     setTranscript('');
     setAssistantReply('');
     setSuggestedGuides([]);
@@ -186,7 +191,7 @@ export default function VoiceAssistantModal({
 
         recorder.onstop = async () => {
           mediaStream.getTracks().forEach(t => t.stop());
-          if (audioChunksRef.current.length > 0 && !transcript) {
+          if (audioChunksRef.current.length > 0 && !transcriptRef.current) {
             await processRecordedAudioChunks();
           }
         };
