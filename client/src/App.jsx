@@ -27,14 +27,8 @@ import { APP_CONFIG } from './config/appConfig';
 export default function App() {
   const prefix = APP_CONFIG.storagePrefix;
 
-  // Setup / Onboarding state
-  const [hasCompletedSetup, setHasCompletedSetup] = useState(() => {
-    try {
-      return localStorage.getItem(`${prefix}setup_done`) === 'true';
-    } catch {
-      return false;
-    }
-  });
+  // Setup / Onboarding state: prompts every time someone enters the website
+  const [hasCompletedSetup, setHasCompletedSetup] = useState(false);
 
   const [language, setLanguage] = useState(() => {
     try {
@@ -99,9 +93,12 @@ export default function App() {
     localStorage.setItem(`${prefix}preferred_lang`, language);
   }, [theme, zoomLevel, language]);
 
-  const handleFinishSetup = () => {
+  const handleFinishSetup = (chosenTab = 'guides') => {
     setHasCompletedSetup(true);
-    localStorage.setItem(`${prefix}setup_done`, 'true');
+    if (chosenTab && typeof chosenTab === 'string') {
+      setActiveGuide(null);
+      setActiveTab(chosenTab);
+    }
   };
 
   const handleCompleteGuide = (guideId) => {
