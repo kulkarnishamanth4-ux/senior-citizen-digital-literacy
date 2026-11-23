@@ -27,12 +27,18 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install client dependencies and build web assets
+      - name: Install dependencies and prepare assets
         run: |
+          # 1. Install root dependencies so node_modules/@capacitor/android is available for Gradle
+          npm install --legacy-peer-deps
+
+          # 2. Build client frontend
           cd client
           npm install --legacy-peer-deps
           npm run build
           cd ..
+
+          # 3. Ensure static web assets are copied to Android assets public directory
           mkdir -p android/app/src/main/assets/public
           cp -r client/dist/* android/app/src/main/assets/public/
 
