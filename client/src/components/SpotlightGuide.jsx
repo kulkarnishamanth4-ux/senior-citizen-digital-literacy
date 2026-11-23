@@ -46,6 +46,8 @@ export default function SpotlightGuide({
   const videoRef = useRef(null);
   const analysisTimerRef = useRef(null);
   const isMountedRef = useRef(true);
+  const isScreenSharingRef = useRef(false);
+  const isAnalyzingRef = useRef(false);
 
   const steps = guide.steps || [];
   const currentStep = steps[currentStepIndex] || steps[0];
@@ -160,6 +162,7 @@ export default function SpotlightGuide({
       };
 
       setScreenStream(stream);
+      isScreenSharingRef.current = true;
       setIsScreenSharing(true);
 
       // Active voice command on screen connection
@@ -173,10 +176,10 @@ export default function SpotlightGuide({
       
       speechService.speak(notice, language);
 
-      // Trigger immediate first scan
+      // Trigger immediate first scan as soon as video plays
       setTimeout(() => {
         runSingleAnalysis();
-      }, 600);
+      }, 500);
 
       // Check vision readiness
       if (!isVisionReady) {
@@ -196,6 +199,8 @@ export default function SpotlightGuide({
 
   const stopScreenShare = () => {
     clearInterval(analysisTimerRef.current);
+    isScreenSharingRef.current = false;
+    isAnalyzingRef.current = false;
     if (screenStream) {
       screenStream.getTracks().forEach(track => {
         try { track.stop(); } catch(e) {}
@@ -220,12 +225,19 @@ export default function SpotlightGuide({
 
   const runSingleAnalysis = useCallback(async () => {
     const video = videoRef.current;
-    if (!video || !isScreenSharing) return;
+    if (!video || !video.srcObject) return;
     if (video.videoWidth === 0 || video.videoHeight === 0) {
+      // If video dimensions not yet populated, schedule retry
+      setTimeout(() => {
+        if (isScreenSharingRef.current && !isAnalyzingRef.current) {
+          runSingleAnalysis();
+        }
+      }, 400);
       return;
     }
-    if (isAnalyzing) return;
+    if (isAnalyzingRef.current) return;
 
+    isAnalyzingRef.current = true;
     setIsAnalyzing(true);
     setAnalysisError(null);
 
@@ -260,10 +272,11 @@ export default function SpotlightGuide({
       }
     } finally {
       if (isMountedRef.current) {
+        isAnalyzingRef.current = false;
         setIsAnalyzing(false);
       }
     }
-  }, [isScreenSharing, isAnalyzing, currentStep, guide, language]);
+  }, [currentStep, guide, language]);
 
   // --------------- Comprehensive Smart Coordinate Positioning ---------------
 

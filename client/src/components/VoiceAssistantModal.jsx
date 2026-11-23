@@ -108,18 +108,15 @@ export default function VoiceAssistantModal({
         setIsListening(true);
         setErrorMessage(null);
       } else if (state === 'error') {
-        setIsListening(false);
         if (message && message.toLowerCase().includes('network')) {
           isWebSpeechNetworkBlocked.current = true;
-          // If direct audio recording is active in background, do not interrupt with a jarring error
+          // If direct audio recording is active, do not disrupt the user
           if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-            setErrorMessage(null);
-          } else {
-            setErrorMessage("Browser cloud speech is blocked by your network. Direct audio recording is enabled — tap mic to speak or type below.");
+            return;
           }
-        } else {
-          setErrorMessage(message);
         }
+        setIsListening(false);
+        setErrorMessage(message);
       } else {
         setIsListening(false);
       }
@@ -212,7 +209,7 @@ export default function VoiceAssistantModal({
 
   const processRecordedAudioChunks = async () => {
     const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-    if (audioBlob.size < 1000) return;
+    if (audioBlob.size < 500) return;
 
     setIsLoadingReply(true);
 
@@ -221,33 +218,57 @@ export default function VoiceAssistantModal({
       reader.readAsDataURL(audioBlob);
       reader.onloadend = async () => {
         const base64Audio = reader.result;
+        let answered = false;
+
         try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 35000);
+
           const res = await fetch(`${apiBaseUrl}/api/transcribe-voice`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               audio_base64: base64Audio,
               mime_type: 'audio/webm',
-              language: language
-            })
+              language: language,
+              api_key: screenVisionService.getStoredApiKey() || null
+            }),
+            signal: controller.signal
           });
+
+          clearTimeout(timeoutId);
 
           if (res.ok) {
             const data = await res.json();
-            setTranscript(data.transcript || 'Spoken Question');
-            setAssistantReply(data.reply || '');
-            if (data.suggested_guide_ids) {
-              matchAndSetGuides(data.suggested_guide_ids);
-            }
             if (data.reply) {
+              setTranscript(data.transcript || 'Spoken Question');
+              setAssistantReply(data.reply);
+              if (data.suggested_guide_ids) {
+                matchAndSetGuides(data.suggested_guide_ids);
+              }
               speechService.speak(data.reply, language);
+              answered = true;
             }
           }
         } catch (fetchErr) {
           console.warn("Backend transcribe error:", fetchErr);
-        } finally {
-          setIsLoadingReply(false);
         }
+
+        // If backend was sleeping or unreachable, provide warm fallback guidance
+        if (!answered) {
+          const fallbackText = language === 'kn'
+            ? "ನಾನು ನಿಮ್ಮ ಧ್ವನಿಯನ್ನು ಕೇಳಿಸಿಕೊಂಡೆ. ಸಹಾಯಕ್ಕಾಗಿ ಕೆಳಗಿನ ಸರಳ ಮಾರ್ಗದರ್ಶಿಗಳನ್ನು ನೋಡಿ ಅಥವಾ ಕೆಳಗೆ ಟೈಪ್ ಮಾಡಿ."
+            : language === 'hi'
+            ? "मैंने आपकी आवाज़ सुनी। सहायता के लिए नीचे दिए गए आसान पाठ देखें या लिखकर पूछें।"
+            : "I heard your voice. Here are helpful guides for you, or you can type any question below.";
+          
+          setTranscript('Spoken Question');
+          setAssistantReply(fallbackText);
+          matchAndSetGuides(["whatsapp-video-call", "make-font-larger", "turn-on-flashlight"]);
+          speechService.speak(fallbackText, language);
+        }
+
+        setIsLoadingReply(false);
       };
     } catch (e) {
       setIsLoadingReply(false);

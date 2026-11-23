@@ -25,6 +25,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def extract_json_dict(text: str) -> Optional[dict]:
+    """Robustly extracts and parses a JSON dictionary from Gemini responses,
+    handling markdown blocks, commentary, and trailing characters."""
+    if not text:
+        return None
+    cleaned = re.sub(r'```json\s*', '', text, flags=re.IGNORECASE)
+    cleaned = re.sub(r'```\s*', '', cleaned).strip()
+    try:
+        data = json.loads(cleaned)
+        if isinstance(data, dict):
+            return data
+    except Exception:
+        pass
+
+    match = re.search(r'\{[\s\S]*\}', text)
+    if match:
+        try:
+            data = json.loads(match.group(0))
+            if isinstance(data, dict):
+                return data
+        except Exception:
+            pass
+    return None
+
 # ----------------- Data Models -----------------
 class ScamVerifyRequest(BaseModel):
     text: str
@@ -303,8 +327,7 @@ Return ONLY a valid JSON object in this exact schema without markdown backticks 
                     contents=[part, prompt]
                 )
                 raw_text = response.text or ""
-                cleaned = re.sub(r'```json|```', '', raw_text).strip()
-                parsed_json = json.loads(cleaned)
+                parsed_json = extract_json_dict(raw_text)
                 if parsed_json:
                     break
             except Exception as model_err:
@@ -326,12 +349,11 @@ Return ONLY a valid JSON object in this exact schema without markdown backticks 
                     }],
                     "generationConfig": {"responseMimeType": "application/json"}
                 }
-                res = requests.post(url, json=payload, timeout=12)
+                res = requests.post(url, json=payload, timeout=30)
                 if res.status_code == 200:
                     data = res.json()
                     candidate_text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-                    cleaned = re.sub(r'```json|```', '', candidate_text).strip()
-                    parsed_json = json.loads(cleaned)
+                    parsed_json = extract_json_dict(candidate_text)
                     if parsed_json:
                         break
             except Exception:
@@ -409,8 +431,8 @@ Return ONLY valid JSON matching this schema:
                 model="gemini-2.0-flash",
                 contents=prompt
             )
-            raw = re.sub(r'```json|```', '', res.text or '').strip()
-            data = json.loads(raw)
+            raw = res.text or ''
+            data = extract_json_dict(raw)
             if data and "reply" in data:
                 return ChatAssistantResponse(
                     reply=str(data.get("reply", "")),
@@ -505,15 +527,7 @@ def transcribe_voice(req: VoiceTranscribeRequest):
             suggested_guide_ids=[]
         )
 
-    try:
-        from google import genai
-        from google.genai import types
-
-        client = genai.Client(api_key=api_key.strip())
-        audio_bytes = base64.b64decode(clean_base64)
-        audio_part = types.Part.from_bytes(data=audio_bytes, mime_type=req.mime_type or "audio/webm")
-
-        prompt = f"""Listen to this audio recording from an elderly senior citizen in India.
+    prompt = f"""Listen to this audio recording from an elderly senior citizen in India.
 1. Transcribe the spoken words accurately in the language they spoke ({req.language}).
 2. Provide a polite, reassuring answer to their question in language '{req.language}'.
 3. Return JSON:
@@ -523,24 +537,67 @@ def transcribe_voice(req: VoiceTranscribeRequest):
   "suggested_guide_ids": ["whatsapp-video-call"]
 }}"""
 
-        res = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=[audio_part, prompt]
-        )
-        raw = re.sub(r'```json|```', '', res.text or '').strip()
-        data = json.loads(raw)
+    data = None
+
+    # 1. Try google.genai SDK
+    try:
+        from google import genai
+        from google.genai import types
+
+        client = genai.Client(api_key=api_key.strip())
+        audio_bytes = base64.b64decode(clean_base64)
+        audio_part = types.Part.from_bytes(data=audio_bytes, mime_type=req.mime_type or "audio/webm")
+
+        for model_name in ["gemini-2.0-flash", "gemini-1.5-flash"]:
+            try:
+                res = client.models.generate_content(
+                    model=model_name,
+                    contents=[audio_part, prompt]
+                )
+                data = extract_json_dict(res.text or '')
+                if data:
+                    break
+            except Exception:
+                continue
+    except Exception:
+        data = None
+
+    # 2. Fallback to direct REST API
+    if not data:
+        for model_name in ["gemini-2.0-flash", "gemini-1.5-flash"]:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key.strip()}"
+                payload = {
+                    "contents": [{
+                        "parts": [
+                            {"inline_data": {"mime_type": req.mime_type or "audio/webm", "data": clean_base64}},
+                            {"text": prompt}
+                        ]
+                    }],
+                    "generationConfig": {"responseMimeType": "application/json"}
+                }
+                res = requests.post(url, json=payload, timeout=35)
+                if res.status_code == 200:
+                    res_json = res.json()
+                    candidate_text = res_json.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                    data = extract_json_dict(candidate_text)
+                    if data:
+                        break
+            except Exception:
+                continue
+
+    if data:
         return VoiceTranscribeResponse(
             transcript=str(data.get("transcript", "Audio query")),
             reply=str(data.get("reply", "I am here to guide you.")),
             suggested_guide_ids=list(data.get("suggested_guide_ids", []))
         )
-    except Exception as e:
-        print("Voice transcription error:", e)
-        return VoiceTranscribeResponse(
-            transcript="Audio query",
-            reply="Could not process voice audio at this moment. Please type your question in the box below.",
-            suggested_guide_ids=[]
-        )
+
+    return VoiceTranscribeResponse(
+        transcript="Audio query",
+        reply="Could not process voice audio at this moment. Please type your question in the box below.",
+        suggested_guide_ids=[]
+    )
 
 @app.get("/api/caregiver/alerts")
 def get_caregiver_alerts():

@@ -330,9 +330,19 @@ Return ONLY a valid JSON object in this exact schema without extra text:
         const rawText = candidate?.content?.parts?.[0]?.text;
         if (!rawText) throw new Error('No content returned from Gemini.');
 
-        // Clean json if wrapped in backticks
-        const cleanedText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(cleanedText);
+        // Clean json if wrapped in backticks or markdown
+        let parsed = null;
+        try {
+          const cleanedText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+          parsed = JSON.parse(cleanedText);
+        } catch {
+          const match = rawText.match(/\{[\s\S]*\}/);
+          if (match) {
+            parsed = JSON.parse(match[0]);
+          }
+        }
+
+        if (!parsed) throw new Error('Could not parse Gemini JSON response.');
 
         return this._formatDetectionResult(parsed, dataUrl);
       } catch (err) {
