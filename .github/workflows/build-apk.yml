@@ -37,9 +37,10 @@ jobs:
           mkdir -p android/app/src/main/assets/public
           cp -r client/dist/* android/app/src/main/assets/public/
 
-      - name: Accept Android SDK licenses
+      - name: Accept Android SDK licenses and install platform 36
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" || true
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
